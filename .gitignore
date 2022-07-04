@@ -37,3 +37,14 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# Folders
+/Plots/
+/Model-Inputs/
+/Libraries/
+/Docs/
+/Data/Spatial/
+
+# Files
+*.qgz
+*.Rproj
