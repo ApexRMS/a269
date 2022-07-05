@@ -119,7 +119,21 @@ vri <- vri %>%
                                      SPECIES_CD_1 == "EP" ~ "Paper Birch",
                                      SPECIES_CD_1 == "BL" ~ "Subalpine Fir",
                                      SPECIES_CD_1 == "PY" ~ "Yellow Pine",
-                                     SPECIES_CD_1 == "HW" ~ "Western Hemlock") %>% as.factor) %>% 
+                                     SPECIES_CD_1 == "HW" ~ "Western Hemlock") %>% as.factor,
+         leadingID = case_when(SPECIES_CD_1 == "AT" ~ 1,
+                               SPECIES_CD_1 == "PLI" ~ 2,
+                               SPECIES_CD_1 == "FDI" ~ 3,
+                               SPECIES_CD_1 == "SX" ~ 4,
+                               SPECIES_CD_1 == "FD" ~ 3,
+                               SPECIES_CD_1 == "PL" ~ 2,
+                               SPECIES_CD_1 == "AC" ~ 5,
+                               SPECIES_CD_1 == "SW" ~ 5,
+                               SPECIES_CD_1 == "ACT" ~ 5,
+                               SPECIES_CD_1 == "PLC" ~ 2,
+                               SPECIES_CD_1 == "EP" ~ 5,
+                               SPECIES_CD_1 == "BL" ~ 5,
+                               SPECIES_CD_1 == "PY" ~ 5,
+                               SPECIES_CD_1 == "HW" ~ 5) %>% as.numeric) %>% 
   rename(DIAM_125 = QUAD_DIAM_125,
          DIAM_175 = QUAD_DIAM_175,
          AGE_CLASS1 = PROJ_AGE_CLASS_CD_1,
@@ -127,7 +141,7 @@ vri <- vri %>%
 
 # Write shapefile to disk
 st_write(vri,
-         dsn = ".", 
+         dsn = spatialDataDir, 
          layer = "vri-aspen-percent-cover",
          driver = "ESRI Shapefile",
          append = FALSE)
