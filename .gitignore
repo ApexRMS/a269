@@ -44,6 +44,8 @@ vignettes/*.pdf
 /Libraries/
 /Docs/
 /Data/Spatial/
+/Data/Tabular/
+/QML/
 
 # Files
 *.qgz
