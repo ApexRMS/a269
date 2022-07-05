@@ -35,12 +35,10 @@ targetResolution <- 90
 
 # Load spaital data
 # VRI shapefile (appended with aspen cover)
-vriShapefile <- vect(x = file.path(".", "vri-aspen-percent-cover.shp"))
-
-# st_read(dsn = spatialDataDir,
-#                       layer = "vri-aspen-percent-cover")
+vriShapefile <- vect(x = file.path(spatialDataDir, "vri-aspen-percent-cover.shp"))
 
 # AAFC Land Cover raster
+landcoverRaster <- rast(file.path(spatialDataDir, "LU2015_u10", "LU2015_u10", "LU2015_u10_v3_2021_06.tif"))
 
 ## Generate Strata ----
 # Create template raster of study area
@@ -55,19 +53,43 @@ becVariantRaster <- rasterize(x = vriShapefile,
                               field = "BEC_VAR_")
 
 # State Class ----
+# Rasterize VRI leading species data and reclassify
+speciesRaster <- rasterize(x = vriShapefile,
+                           y = templateRaster,
+                           field = "ledngID")
+
+# Reclassify land cover into more broad classes
+landcoverReclassMatrix <- matrix(data = c(21,22,24,25,28,29,31,41,42,43,44,49,51,52,61,62,71,91,
+                                          20,20,20,20,20,20,30,40,40,40,40,40,50,50,60,60,70,90),
+                                 nrow = 18,
+                                 ncol = 2)
+
+# Project, crop, resample, and reclassify landcover raster
+landcoverRaster <- landcoverRaster %>% 
+  project(y = templateRaster,
+          method = "near") %>% 
+  classify(rcl = landcoverReclassMatrix) %>% 
+  mask(mask = becVariantRaster)
+
+# Combine landcover and species rasters
+# If land cover = forest (4), add species code
+stateClassRaster <- ifel(landcoverRaster == 40, landcoverRaster + speciesRaster, landcoverRaster)
 
 # Age Raster ----
 ageRaster <- rasterize(x = vriShapefile,
                        y = templateRaster,
                        field = "PROJ_AGE_1")
 
-# Write rasters to disk
+# Write rasters to disk ----
 # Primary stratum
 writeRaster(x = becVariantRaster,
             filename = file.path(modelInputsDir, "primary-stratum.tiff"),
             overwrite = TRUE)
 
 # State Class
+writeRaster(x = stateClassRaster,
+            filename = file.path(modelInputsDir, "state-class.tiff"),
+            overwrite = TRUE)
 
 # Age Raster
 writeRaster(x = ageRaster,
