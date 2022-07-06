@@ -96,9 +96,9 @@ vri <- vri %>%
          PROJ_AGE_1, PROJ_AGE_CLASS_CD_1, PROJ_AGE_2, PROJ_AGE_CLASS_CD_2, 
          AT_PCT, PROJECTED_DATE) %>% 
   mutate(BEC_ZONE_SUBZONE = str_c(BEC_ZONE_CODE, BEC_SUBZONE), 
-         BEC_ZONE_SUBZONE = case_when(BEC_ZONE_SUBZONE == "BGxw" ~ "Bunch Grass:warm",
+         BEC_ZONE_SUBZONE = case_when(BEC_ZONE_SUBZONE == "BGxw" ~ "Bunch Grass:very dry warm",
                                       BEC_ZONE_SUBZONE == "IDFdk" ~ "Interior Douglas-fir:dry cool",
-                                      BEC_ZONE_SUBZONE == "IDFxm" ~ "Interior Douglas-fir:mild",
+                                      BEC_ZONE_SUBZONE == "IDFxm" ~ "Interior Douglas-fir:very dry mild",
                                       BEC_ZONE_SUBZONE == "SBPSmk" ~ "Sub-Boreal Pine - Spruce:moist cool",
                                       BEC_ZONE_SUBZONE == "SBSdw" ~ "Sub-Boreal Spruce:dry warm") %>% as.factor,
          BEC_VAR_CODE = case_when(BEC_ZONE_SUBZONE == "Bunch Grass:warm" ~ 1,
@@ -126,14 +126,14 @@ vri <- vri %>%
                                SPECIES_CD_1 == "SX" ~ 4,
                                SPECIES_CD_1 == "FD" ~ 3,
                                SPECIES_CD_1 == "PL" ~ 2,
-                               SPECIES_CD_1 == "AC" ~ 5,
-                               SPECIES_CD_1 == "SW" ~ 5,
-                               SPECIES_CD_1 == "ACT" ~ 5,
+                               SPECIES_CD_1 == "AC" ~ 0,
+                               SPECIES_CD_1 == "SW" ~ 0,
+                               SPECIES_CD_1 == "ACT" ~ 0,
                                SPECIES_CD_1 == "PLC" ~ 2,
-                               SPECIES_CD_1 == "EP" ~ 5,
-                               SPECIES_CD_1 == "BL" ~ 5,
-                               SPECIES_CD_1 == "PY" ~ 5,
-                               SPECIES_CD_1 == "HW" ~ 5) %>% as.numeric) %>% 
+                               SPECIES_CD_1 == "EP" ~ 0,
+                               SPECIES_CD_1 == "BL" ~ 0,
+                               SPECIES_CD_1 == "PY" ~ 0,
+                               SPECIES_CD_1 == "HW" ~ 0) %>% as.numeric) %>% 
   rename(DIAM_125 = QUAD_DIAM_125,
          DIAM_175 = QUAD_DIAM_175,
          AGE_CLASS1 = PROJ_AGE_CLASS_CD_1,
@@ -145,6 +145,7 @@ st_write(vri,
          layer = "vri-aspen-percent-cover",
          driver = "ESRI Shapefile",
          append = FALSE)
+
 ## Merge ECCC sample plot data ----
 # Divide habitat data set by coordinate reference systems
 # Transform coordinates from WGS and UTM 10 (NAD 83) to EPSG 3005
