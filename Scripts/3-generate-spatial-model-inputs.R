@@ -40,7 +40,7 @@ vriShapefile <- vect(x = file.path(spatialDataDir, "vri-aspen-percent-cover.shp"
 # AAFC Land Cover raster
 landcoverRaster <- rast(file.path(spatialDataDir, "LU2015_u10", "LU2015_u10", "LU2015_u10_v3_2021_06.tif"))
 
-## Generate Strata ----
+## Initial Conditions ----
 # Create template raster of study area
 templateRaster <- rast()
 crs(templateRaster) <- targetCrs
@@ -80,19 +80,43 @@ ageRaster <- rasterize(x = vriShapefile,
                        y = templateRaster,
                        field = "PROJ_AGE_1")
 
+## Initial Stocks ----
+# Initial Aspen Cover
+aspenCoverRaster <- rasterize(x = vriShapefile,
+                              y = templateRaster,
+                              field = "AT_PCT") 
+
+aspenCoverRaster <- ifel(landcoverRaster == 40, aspenCoverRaster, 0)
+
+# Initial quadratic mean diameter 
+diameterRaster <- rasterize(x = vriShapefile,
+                            y = templateRaster,
+                            field = "DIAM_12") 
+
+diameterRaster <- ifel(landcoverRaster == 40, diameterRaster, 0)
+
 # Write rasters to disk ----
 # Primary stratum
 writeRaster(x = becVariantRaster,
-            filename = file.path(modelInputsDir, "primary-stratum.tiff"),
+            filename = file.path(modelInputsDir, "primary-stratum.tif"),
             overwrite = TRUE)
 
 # State Class
 writeRaster(x = stateClassRaster,
-            filename = file.path(modelInputsDir, "state-class.tiff"),
+            filename = file.path(modelInputsDir, "state-class.tif"),
             overwrite = TRUE)
 
 # Age Raster
 writeRaster(x = ageRaster,
-            filename = file.path(modelInputsDir, "age.tiff"),
+            filename = file.path(modelInputsDir, "age.tif"),
             overwrite = TRUE)
 
+# Initial Aspen Cover
+writeRaster(x = aspenCoverRaster,
+            filename = file.path(modelInputsDir, "initial-aspen-cover.tif"),
+            overwrite = TRUE)
+
+# Initial Diameter
+writeRaster(x = diameterRaster,
+            filename = file.path(modelInputsDir, "initial-diameter.tif"),
+            overwrite = TRUE)
