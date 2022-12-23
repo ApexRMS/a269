@@ -186,6 +186,10 @@ tstRaster <- cutblocks %>%
   rasterize(y = templateRaster, 
             field = "TimeSinceCut")
 
+tstRaster[is.na(tstRaster)] <- 61
+tstRaster <- tstRaster %>%
+  mask(mask = becVariantRaster)
+
 ## State Class ----
 # Rasterize VRI leading species data and reclassify
 speciesReclassMatrix <- matrix(data = c(0,1,2,3,4,0,41,42,43,44),
