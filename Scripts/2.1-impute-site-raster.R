@@ -39,7 +39,7 @@ targetResolution <- 90
 # Load spaital data
 # VRI shapefile (appended with aspen cover)
 samplePlots <- st_read(dsn = spatialDataDir, 
-                       layer = "eccc-sample-plot-data-append-vri")
+                       layer = "eccc-sample-plot-data")
 
 # Primary stratum raster
 primaryStratum <- rast(file.path(modelInputsDir, "primary-stratum.tif"))
@@ -56,9 +56,9 @@ res(templateRaster) <- targetResolution
 
 ## Prep and rasterize shapefile ----
 # Get a vector of unique Sites
-uniqueSites <- samplePlots %>% # zzz: confirm that these are the correct Site IDs
-  select(Site_x) %>%
-  pull(Site_x) %>% 
+uniqueSites <- samplePlots %>%
+  select(Site) %>%
+  pull(Site) %>% 
   unique
 
 # Create a vector of integers of length(uniqueSites)
@@ -71,10 +71,8 @@ siteRasterValues <- tibble(
   write_csv(file.path(tabularDataDir, "imputed-site-raster-crosswalk.csv"))
 
 # Join unique raster IDs to samplePlots shapefile and rasterize
-# zzz: this results in a raster that omits 4 site IDs (14, 35, 39, 43)
-#       Revisit this issue when generating the finalized site map
 site <- samplePlots %>% 
-  left_join(siteRasterValues, by = c("Site_x" = "Site")) %>% 
+  left_join(siteRasterValues, by = c("Site" = "Site")) %>% 
   rasterize(y = templateRaster,
             field = "Value",
             filename = file.path(intermediatesDir, "site.tif"),
@@ -140,7 +138,7 @@ for(i in uniqueStrataCombos$value) {
   
   # Write out imputed raster if minimum value != 0
   if((!report[4, , drop = TRUE] %>% str_detect("0"))) {
-    execGRASS('r.out.gdal', input = outputFilename, output = file.path(intermediatesDir, str_c(outputFilename, "-checked.tif")), format = 'GTiff', type = "Int16", nodata = -9999, flags = c('f', 'overwrite'))
+    execGRASS('r.out.gdal', input = outputFilename, output = file.path(intermediatesDir, str_c(outputFilename, ".tif")), format = 'GTiff', type = "Int16", nodata = -9999, flags = c('f', 'overwrite'))
   } 
   
   # Remove active mask before processing next stratum ID
@@ -148,7 +146,7 @@ for(i in uniqueStrataCombos$value) {
 }
 
 # Check if imputation was successful for each stratum
- reportSummaries <- map_dfr(uniqueStrataCombos$value, 
+reportSummaries <- map_dfr(uniqueStrataCombos$value, 
 ~{
   reportFilename = file.path(intermediatesDir, str_c("report-", .x, ".csv"))
   report <- read_csv(reportFilename)
