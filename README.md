@@ -3,6 +3,7 @@
 This repo contains scripts that prepare spatial and tabular inputs, run habitat models on stsimsf stock projections, and forecasts total amount of available habitat for select woodpecker species in BC, Canada.
 
 Scripts in this repo perform the following tasks:
+
 1-data-preprocessing.R: Calculates % aspen cover for each polygon in the VRI dataset and samples VRI data from sample plot coordinates.
 
 2.0-generate-spatial-model-inputs.R: Generates spatial input data for the stsimsf model, including the primary and secondary strata, state class, time since cut, age, and initial stock rasters.
