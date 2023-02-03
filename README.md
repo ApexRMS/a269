@@ -16,7 +16,7 @@ Scripts in this repo perform the following tasks:
 
 5-lulc-change-analysis.R: Computes the annual rate of conversion to developed or agricultural land.
 
-6-model-variables.R: Models % aspen cover and quadratic mean diameter as a function of stand age and species using natural cubic splines.
+6-model-variables.R: Models % aspen cover and quadratic mean diameter as a function of stand age using natural cubic splines.
 
 7-build-library.R: Creates an stsimsf SyncroSim library, loads Project and Scenario-scope datasheets, and builds management scenarios.
 
