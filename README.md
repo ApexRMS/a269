@@ -10,7 +10,7 @@ Scripts in this repo perform the following tasks:
 
 2.1-impute-site-raster.R: Performs nearest neighbour imputation on sample plot IDs to create a contiguous site raster.
 
-3-historic-fire-analysis.R: Computes the annual probability of historic fires, the normalized fire distribution, and the fire size class distribution.  
+3-historic-fire-analysis.R: Computes the annual probability of historic fires, the normalized fire variability distribution, and the fire size class distribution.  
 
 4-historic-logging-analysis.R: Computes the annual probability of clearcutting and the clearcut size class distribution. 
 
