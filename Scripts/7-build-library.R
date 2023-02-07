@@ -330,6 +330,28 @@ rm(deterministicTransitionValues, transitionPathwaySubScenario,
    deterministicTransitionsDatasheet)
 
 ### Initial Conditions ----
+#### Initial TST Spatial ----
+initialTstSpatialValues <- list(
+  TransitionGroupID = "Disturbance: Clearcut [Type]",
+  TSTFileName = file.path(getwd(), spatialModelInputsDir, "time-since-cut.tif"))
+
+# Create initial conditions sub scenario
+initialTstSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Initial Conditions - TST Spatial")
+
+# Populate initial conditions datasheet
+initialTstDatasheet <- datasheet(
+  ssimObject = initialTstSubScenario,
+  name = "stsim_InitialTSTSpatial", 
+  optional = TRUE) %>% 
+  addRow(value = initialTstSpatialValues)
+
+# Save datasheet to library
+saveDatasheet(ssimObject = initialTstSubScenario, 
+              data = initialTstDatasheet,
+              name = "stsim_InitialTSTSpatial")
+
 #### Baseline Ownership ----
 # Create a list of the input tif files
 initialConditionsSpatialValues <- list(
@@ -482,7 +504,9 @@ outputOptionsSpatialValues = data.frame(
   RasterOutputST = "TRUE",
   RasterOutputSTTimesteps = 30,
   RasterOutputTR = "TRUE",
-  RasterOutputTRTimesteps = 1)
+  RasterOutputTRTimesteps = 1, 
+  RasterOutputTST = "TRUE", 
+  RasterOutputTSTTimesteps = 1)
 
 # Create output options sub scenario
 outputOptionsSubScenario <- scenario(
@@ -782,7 +806,8 @@ stateAttributeSubScenario <- scenario(
 stateAttributeDatasheet <- datasheet(
   ssimObject = stateAttributeSubScenario,
   name = "stsim_StateAttributeValue",
-  optional = TRUE) %>% 
+  optional = TRUE, 
+  empty = TRUE) %>% 
   addRow(value = growthRateValues) %>% 
   addRow(value = postFireValues) %>% 
   mutate(TSTGroupID = NA)
@@ -790,7 +815,8 @@ stateAttributeDatasheet <- datasheet(
 # Save datasheet to library
 saveDatasheet(ssimObject = stateAttributeSubScenario,
               data = stateAttributeDatasheet,
-              name = "stsim_StateAttributeValue")
+              name = "stsim_StateAttributeValue", 
+              append = FALSE)
 
 # Memory management
 rm(growthRateValues, postFireValues, stateAttributeSubScenario, 
@@ -1076,6 +1102,7 @@ dependency(baselineScenario, "Flow Pathways")
 dependency(baselineScenario, "State Attribute Values")
 dependency(baselineScenario, "Transition Multiplier - No Fire")
 dependency(baselineScenario, "Output Options")
+dependency(baselineScenario, "Initial Conditions - TST Spatial")
 dependency(baselineScenario, "Initial Conditions - Baseline Ownership")
 dependency(baselineScenario, "Transition Pathways")
 dependency(baselineScenario, "Run Control - 2016 to 2046, 1 Iteration")
