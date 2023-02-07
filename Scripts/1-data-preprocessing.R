@@ -8,19 +8,45 @@
 # Set environment variable TZ when running on AWS EC2 instance
 Sys.setenv(TZ='UTC')
 
-# Define directories
-spatialDataDir <- file.path("Data", "Spatial")
-tabularDataDir <- file.path("Data", "Tabular")
-
 # Load libraries
 library(sf)
 library(terra)
 library(tidyverse)
 
+# Define directories
+spatialDataDir <- file.path("Data", "Spatial")
+tabularDataDir <- file.path("Data", "Tabular")
+
+# Parameters
+# Target crs
+targetCrs <- "epsg: 3005"
+
 # Load data
 # Spatial
 # VRI shapefile clipped to study area
-vri <- st_read(dsn = file.path(spatialDataDir, "VRI_Cariboo_Near.gdb"), layer = "VRI_Clipped_Cariboo")
+vri <- st_read(dsn = file.path(spatialDataDir, "VRI_Cariboo_Near.gdb"), 
+               layer = "VRI_Clipped_Cariboo")
+
+# Ownership layers
+# Protected areas
+protectedAreas <- st_read(dsn = file.path(spatialDataDir, "CPCAD-BDCAPC_Dec2021.gdb"),
+                          layer = "CPCAD_BC_Dec2021")
+
+# Indian reserves
+indianReserves <- st_read(dsn = file.path(spatialDataDir, "FederalLandsInventory2019_Internal.gdb"),
+                          layer = "CanadaLandsAdministrativeBoundary_IndianReserve") 
+
+# CWS Federal Lands
+cwsLands <- st_read(dsn = file.path(spatialDataDir, "FederalLandsInventory2019_Internal.gdb"),
+                    layer = "CWS_FederalLandsInventory2019_Department")
+
+# BC Parcels
+bcParcels <- st_read(dsn = file.path(spatialDataDir, "Cleaned_ParcelMapBCExtract2021.gdb"),
+                     layer = "pmbc_parcel_fabric_poly_svw2021")
+
+# Historic Cutblocks
+cutblocks <- st_read(dsn = file.path(spatialDataDir, "Consolidated_Cutblocks", "Consolidated_Cutblocks", "Consolidated_Cut_Block.gdb"),
+                     layer = "consolidated-cutblocks-vri-extent")
 
 # Tabular
 # ECCC sample plot data (Andrea Norris)
@@ -101,9 +127,9 @@ vri <- vri %>%
                                       BEC_ZONE_SUBZONE == "IDFxm" ~ "Interior Douglas-fir:very dry mild",
                                       BEC_ZONE_SUBZONE == "SBPSmk" ~ "Sub-Boreal Pine - Spruce:moist cool",
                                       BEC_ZONE_SUBZONE == "SBSdw" ~ "Sub-Boreal Spruce:dry warm") %>% as.factor,
-         BEC_VAR_CODE = case_when(BEC_ZONE_SUBZONE == "Bunch Grass:warm" ~ 1,
+         BEC_VAR_CODE = case_when(BEC_ZONE_SUBZONE == "Bunch Grass:very dry warm" ~ 1,
                                   BEC_ZONE_SUBZONE == "Interior Douglas-fir:dry cool" ~ 2,
-                                  BEC_ZONE_SUBZONE == "Interior Douglas-fir:mild" ~ 3,
+                                  BEC_ZONE_SUBZONE == "Interior Douglas-fir:very dry mild" ~ 3,
                                   BEC_ZONE_SUBZONE == "Sub-Boreal Pine - Spruce:moist cool" ~ 4,
                                   BEC_ZONE_SUBZONE == "Sub-Boreal Spruce:dry warm" ~5) %>% as.numeric,
          LEADING_SPECIES = case_when(SPECIES_CD_1 == "AT" ~ "Trembling Aspen",
@@ -120,20 +146,20 @@ vri <- vri %>%
                                      SPECIES_CD_1 == "BL" ~ "Subalpine Fir",
                                      SPECIES_CD_1 == "PY" ~ "Yellow Pine",
                                      SPECIES_CD_1 == "HW" ~ "Western Hemlock") %>% as.factor,
-         leadingID = case_when(SPECIES_CD_1 == "AT" ~ 1,
+         leadingID = case_when(SPECIES_CD_1 == "AT" ~ 1,  # Group leading species into main forest types (i.e. state classes)
                                SPECIES_CD_1 == "PLI" ~ 2,
                                SPECIES_CD_1 == "FDI" ~ 3,
                                SPECIES_CD_1 == "SX" ~ 4,
                                SPECIES_CD_1 == "FD" ~ 3,
                                SPECIES_CD_1 == "PL" ~ 2,
-                               SPECIES_CD_1 == "AC" ~ 0,
-                               SPECIES_CD_1 == "SW" ~ 0,
-                               SPECIES_CD_1 == "ACT" ~ 0,
+                               SPECIES_CD_1 == "AC" ~ 1,
+                               SPECIES_CD_1 == "SW" ~ 4,
+                               SPECIES_CD_1 == "ACT" ~ 1,
                                SPECIES_CD_1 == "PLC" ~ 2,
-                               SPECIES_CD_1 == "EP" ~ 0,
-                               SPECIES_CD_1 == "BL" ~ 0,
-                               SPECIES_CD_1 == "PY" ~ 0,
-                               SPECIES_CD_1 == "HW" ~ 0) %>% as.numeric) %>% 
+                               SPECIES_CD_1 == "EP" ~ 1,
+                               SPECIES_CD_1 == "BL" ~ 3,
+                               SPECIES_CD_1 == "PY" ~ 2,
+                               SPECIES_CD_1 == "HW" ~ 3) %>% as.numeric) %>% 
   rename(DIAM_125 = QUAD_DIAM_125,
          DIAM_175 = QUAD_DIAM_175,
          AGE_CLASS1 = PROJ_AGE_CLASS_CD_1,
@@ -147,6 +173,28 @@ st_write(vri,
          append = FALSE)
 
 ## Merge ECCC sample plot data ----
+## Reclass Site IDs ##
+#change some of the sites (off) in data to match up
+habitatDf$Site<-as.character(habitatDf$Site)
+habitatDf <- habitatDf %>%
+  mutate(Site = ifelse(Site == "D2OFF", "D2", Site))%>%
+  mutate(Site = ifelse(Site == "FOOFF", "FO", Site))%>%
+  mutate(Site = ifelse(Site == "LTOFF", "LT1", Site))%>%
+  mutate(Site = ifelse(Site == "LToff", "LT1", Site))%>%
+  mutate(Site = ifelse(Site == "LT1/LT2", "LT1", Site))%>%
+  mutate(Site = ifelse(Site == "MLF", "ML", Site))%>%
+  mutate(Site = ifelse(Site == "RCOFF", "RC", Site))%>%
+  mutate(Site = ifelse(Site == "RCoff", "RC", Site))%>%
+  mutate(Site = ifelse(Site == "RC-off", "RC", Site))%>%
+  mutate(Site = ifelse(Site == "STUMP", "RC", Site))%>%
+  mutate(Site = ifelse(Site == "RLOFF", "RL", Site))%>%
+  mutate(Site = ifelse(Site == "SC-off", "SC", Site))%>%
+  mutate(Site = ifelse(Site == "SCOFF", "SC", Site))%>%
+  mutate(Site = ifelse(Site == "SDOFF", "SD", Site))%>%
+  mutate(Site = ifelse(Site == "SHOFF", "SHAC", Site))%>%
+  mutate(Site = ifelse(Site == "YYOFF", "YY", Site)) %>% 
+  mutate(Site = Site %>% as.factor)
+
 # Divide habitat data set by coordinate reference systems
 # Transform coordinates from WGS and UTM 10 (NAD 83) to EPSG 3005
 df1 <- habitatDf %>% 
@@ -172,13 +220,19 @@ speciesData$y <- speciesGeomtry[, 4]
 
 speciesData <- speciesData %>% 
   st_as_sf() %>% 
-  #filter(!st_is_empty(.)) %>%
+  filter(!st_is_empty(.)) %>%
   rename(SITENUM = Site_Point) %>% 
   select(-Site_coords, -X_COORD, -Y_COORD, -`UTM Zone`) %>% 
   tibble()
 
-st_write(speciesData, dsn = "./Data", layer = "eccc-sample-plot-data", driver = "ESRI Shapefile")
-write_csv(speciesData, file.path(tabularDataDir, "eccc-sample-plots-merged.csv"))
+st_write(speciesData, 
+         dsn = spatialDataDir, 
+         layer = "eccc-sample-plot-data", 
+         driver = "ESRI Shapefile",
+         append = FALSE)
+
+write_csv(speciesData, 
+          file.path(tabularDataDir, "Habitat selection - full dataset with coordinates.csv"))
 
 
 ## Append VRI data fields to sample plot data frame ----
@@ -220,3 +274,15 @@ st_write(samplePlotsVriVector,
          append = FALSE)
 
 write_csv(samplePlotsVriTibbleFilter, file.path(tabularDataDir, "Habitat selection - full dataset - append VRI (12.06.2022).csv"))
+
+## Clip raw data to analysis area ----
+dissolveVri <- st_union(x = vri, by_feature = FALSE)
+
+protectedAreas <- protectedAreas %>% 
+  st_transform(crs = targetCrs)
+
+# zzz: causing an error
+protectedAreasClip <-st_intersection(x = protectedAreas, y = vri)
+
+bcParcelsClip <- st_crop(bcParcels$geometry, vri$geometry)
+
