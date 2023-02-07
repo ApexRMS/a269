@@ -151,18 +151,20 @@ qmdSplinePlot <- qmdFit %>%
   filter(qmd <= 125) %>% 
   ggplot(aes(age)) +
   geom_point(aes(y = qmd), size = 0.5, alpha = 0.1) +
-  geom_line(aes(y = qmdFitted), size = 0.5, colour = "red") +         # 3 df
-  geom_line(aes(y = qmdFitted2), size = 0.5, colour = "dodgerblue") + # 2 df
-  facet_grid(species ~ bec, scales = "free_y") +
+  #geom_line(aes(y = qmdFitted), size = 0.5, colour = "red") +         # 3 df
+  geom_line(aes(y = qmdFitted2), size = 1, colour = "dodgerblue") + # 2 df
+  facet_grid(bec ~ species, scales = "free_y") +
+  xlab("Stand Age") +
+  ylab("Quadratic Mean Diameter (cm)") +
   theme_bw()
 
 # Save plot to disk
 ggsave(
-  filename = file.path(plotDir, "qmd-splines-update.png"),
+  filename = file.path(plotDir, "qmd-splines-update-3by4.png"),
   plot = qmdSplinePlot,
   device = "png", 
-  width = 7,
-  height = 8,
+  width = 8,
+  height = 6,
   dpi = 300)
 
 # Memory management
@@ -187,24 +189,27 @@ aspenFit <- map2(aspenVriList, aspenModns, ~.x %>% mutate(aspenFitted = fitted(.
 aspenSplinePlot <- aspenFit %>% 
   ggplot(aes(age)) +
   geom_point(aes(y = aspen), size = 0.5, alpha = 0.1) +
-  geom_line(aes(y = aspenFitted), size = 0.5, colour = "red") +  # df = 3
-  geom_line(aes(y = aspenFitted2), size = 0.5, colour = "dodgerblue") + # df = 2
-  facet_grid(species ~ bec, scales = "free_y") +
+  #geom_line(aes(y = aspenFitted), size = 0.5, colour = "red") +  # df = 3
+  geom_line(aes(y = aspenFitted2), size = 1, colour = "dodgerblue") + # df = 2
+  facet_grid(bec ~ species, scales = "free_y") +
+  xlab("Stand Age") +
+  ylab("Percent Aspen Cover") +
   theme_bw()
 
 # Save plot to disk
 ggsave(
-  filename = file.path(plotDir, "aspen-splines-update.png"),
+  filename = file.path(plotDir, "aspen-splines-update-3by4.png"),
   plot = aspenSplinePlot,
   device = "png", 
-  width = 7,
-  height = 8,
+  width = 8,
+  height = 6,
   dpi = 300)
 
 # Memory management
 rm(aspenFit, aspenSplinePlot)
 
-## Get derivative of QMD with respect to (wrt) age as a function of species and BEC ----
+## Get derivatives
+# Calculate derivatives of QMD with respect to (wrt) age as a function of species and BEC ----
 # Create data frame of all possible ages
 ageDf <- data.frame(age = seq(300))
 
@@ -316,6 +321,6 @@ aspenPostFire <-
                     aspenPredicted = predict(model, ageDf),
                     intercept = coef(model)[[1]],
                     # If there is a fire, for a given year, what is the change in aspen cover compared to the intercept
-                    relativeChange = intercept - aspenPredicted)})
+                    relativeChange = (aspenPredicted - intercept)/aspenPredicted)})
 
 write_csv(aspenPostFire, file.path(tabularDataDir, "aspen-cover-post-fire.csv"))
