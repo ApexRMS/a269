@@ -1,33 +1,36 @@
-## a275
+## a269
 ## Katie Birchard (ApexRMS)
-## November 2022
+## April 2023
 ##
 ## This script creates CBM-CFS3 datasheets and saves them as .csvs
 ## Option to save datasheets directly to library
-## Assumes that 1-definitions.py script is run first (to generate project 
+## Assumes that 1-load-definitions.py script is run first (to generate project 
 ## datasheets)
-## Many of the datasheets are read in from a275/Data/CONUS/Carbon/Tabular/Datasheets
-## and are suffixed with "_TreeCover".
-## To edit these datasheets, edit the csvs in the above folder and re-run this script
 
 ## Workspace ----
-# import modules
+# Set up environment
 import os
 import sys
-import re
-import pandas as pd
-import numpy as np
-import pysyncrosim as ps
 
-os.chdir("C:/gitprojects/a275/Scripts/CONUS/Carbon Preprocessing/Forest/Spinup + Flows") # remove once done testing
+# Load paths to retrieve helper functions and constants
+cwd = os.getcwd()
+root_dir = cwd.split(r"nestweb")[0] + "nestweb"
 
-sys.path.append("../../../../.")
+# Set working directory
+os.chdir(os.path.join(root_dir, "Scripts/Carbon"))
+
+# Add Scripts directory to path
+sys.path.append(os.path.join(root_dir, "Scripts"))
 
 # Import helper functions
 from helper_functions import *
 
 # Import constants/global variables 
 from constants import *
+
+# import modules
+import pandas as pd
+import pysyncrosim as ps
 
 # Create directories for initial conditions and transition targets
 create_subscenario_dir("stsimcbmcfs3_CrosswalkDisturbance", dir_name=CUSTOM_CARBON_SUB_CBM_SPINUP_DIR)

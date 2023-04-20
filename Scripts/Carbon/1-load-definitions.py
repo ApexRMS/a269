@@ -1,6 +1,6 @@
 ## a269
 ## Katie Birchard (ApexRMS)
-## December 2022
+## April 2023
 ##
 ## This script creates definition datasheets for a269 Wetlands Carbon stsim-sf model
 ## Definitions datasheets are exported and saved as CSV files
@@ -8,21 +8,29 @@
 ## Note that some definitions files are loaded in from CSV files.
 
 ## Workspace ----
-# Import modules
-import pysyncrosim as ps
-import pandas as pd
+# Set up environment
 import os
 import sys
 
-os.chdir("C:/gitprojects/a275/Scripts/CONUS/Carbon Preprocessing/Forest/Spinup + Flows") # remove once done testing
+# Load paths to retrieve helper functions and constants
+cwd = os.getcwd()
+root_dir = cwd.split(r"nestweb")[0] + "nestweb"
 
-sys.path.append("../../../../.")
+# Set working directory
+os.chdir(os.path.join(root_dir, "Scripts/Carbon"))
 
-# Source functions to auto generate transition types and groups from state classes
+# Add Scripts directory to path
+sys.path.append(os.path.join(root_dir, "Scripts"))
+
+# Import helper functions
 from helper_functions import *
 
 # Import constants/global variables 
 from constants import *
+
+# Import modules
+import pysyncrosim as ps
+import pandas as pd
 
 # Set preferences for saving and exporting definitions
 saveDatasheets = True # Set to True to save datasheet back to library

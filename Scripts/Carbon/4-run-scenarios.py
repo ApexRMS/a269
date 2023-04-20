@@ -1,6 +1,6 @@
-## a275
+## a269
 ## Katie Birchard (ApexRMS)
-## November 2022
+## April 2023
 ##
 ## This script loads definition and scenario data sheets saved as csvs
 ## into cbm-cfs3 Scenarios within an stsimsf Library.
@@ -8,24 +8,28 @@
 ## build the stsimsf Library.
 
 ## Workspace ----
-# import modules
+# Set up environment
 import os
 import sys
-import pandas as pd
-import pysyncrosim as ps
 
-os.chdir("C:/gitprojects/a275/Scripts/CONUS/Carbon Preprocessing/Forest/Spinup + Flows") # remove once done testing
+# Load paths to retrieve helper functions and constants
+cwd = os.getcwd()
+root_dir = cwd.split(r"nestweb")[0] + "nestweb"
 
-sys.path.append("../../../../.")
+# Set working directory
+os.chdir(os.path.join(root_dir, "Scripts/Carbon"))
 
-# Set precision
-pd.set_option('display.precision', 15)
+# Add Scripts directory to path
+sys.path.append(os.path.join(root_dir, "Scripts"))
 
 # Import helper functions
 from helper_functions import *
 
 # Import constants/global variables 
 from constants import *
+
+# import modules
+import pysyncrosim as ps
 
 mySession = ps.Session()
 mySession.add_packages("stsim")

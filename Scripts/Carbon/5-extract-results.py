@@ -1,6 +1,6 @@
-## a275
+## a269
 ## Katie Birchard (ApexRMS)
-## April 20, 2023
+## April 2023
 ##
 ## This script extracts the outputs from the CBM-CFS3 spinup
 ## and prepares it to be used in the forecast model.
