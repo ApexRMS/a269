@@ -61,35 +61,11 @@ add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, cbmcfs3_fold
 
 myScenario.run(jobs=1)
 
-# Fire - Wetland Forest
-scenarioName = "Load CBM Output - Fire - Wetland Forest"
-myScenario = myProject.scenarios(scenarioName)
-myScenario.dependencies(dependency = ["CBM Crosswalk - Stocks",
-                                      "CBM Crosswalk - Spatial Unit and Species Type - Fire - Wetland Forest",
-                                      "Run Control: Non-spatial, 300 yr, 1 MC",
-                                      "Pipeline - Load CBM-CFS3 Output"])
-
-add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, cbmcfs3_folder_id)
-
-myScenario.run(jobs=1)
-
 # Harvest - Forest
 scenarioName = "Load CBM Output - Harvest - Forest"
 myScenario = myProject.scenarios(scenarioName)
 myScenario.dependencies(dependency = ["CBM Crosswalk - Stocks",
                                       "CBM Crosswalk - Spatial Unit and Species Type - Harvest - Forest",
-                                      "Run Control: Non-spatial, 300 yr, 1 MC",
-                                      "Pipeline - Load CBM-CFS3 Output"])
-
-add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, cbmcfs3_folder_id)
-
-myScenario.run(jobs=1)
-
-# Harvest - Wetland Forest
-scenarioName = "Load CBM Output - Harvest - Wetland Forest"
-myScenario = myProject.scenarios(scenarioName)
-myScenario.dependencies(dependency = ["CBM Crosswalk - Stocks",
-                                      "CBM Crosswalk - Spatial Unit and Species Type - Harvest - Wetland Forest",
                                       "Run Control: Non-spatial, 300 yr, 1 MC",
                                       "Pipeline - Load CBM-CFS3 Output"])
 
@@ -114,22 +90,6 @@ add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, cbmcfs3_fold
 
 myResultScenario = myScenario.run(jobs=1)
 
-# Fire - Wetland Forest
-scenarioName = "Generate Flow Multipliers - Fire - Wetland Forest"
-myScenario = myProject.scenarios(scenarioName)
-myScenario.dependencies(dependency = ["SF Flow Group Membership: Base",
-                                      "SF Stock Group Membership: Base",
-                                      "SF Output Options: Base - Summary Stock & Flow",
-                                      "SF Initial Stocks: Base",
-                                      "SF Flow Pathways: Wetland Forested",
-                                      "CBM Crosswalk - Disturbance",
-                                      "Load CBM Output - Fire - Wetland Forest",
-                                      "Pipeline - Generate Flow Multipliers"])
-
-add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, cbmcfs3_folder_id)
-
-myResultScenario = myScenario.run(jobs=1)
-
 # Harvest - Forest
 scenarioName = "Generate Flow Multipliers - Harvest - Forest"
 myScenario = myProject.scenarios(scenarioName)
@@ -140,22 +100,6 @@ myScenario.dependencies(dependency = ["SF Flow Group Membership: Base",
                                       "SF Flow Pathways: Forest",
                                       "CBM Crosswalk - Disturbance",
                                       "Load CBM Output - Harvest - Forest",
-                                      "Pipeline - Generate Flow Multipliers"])
-
-add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, cbmcfs3_folder_id)
-
-myResultScenario = myScenario.run(jobs=1)
-
-# Harvest - Wetland Forest
-scenarioName = "Generate Flow Multipliers - Harvest - Wetland Forest"
-myScenario = myProject.scenarios(scenarioName)
-myScenario.dependencies(dependency = ["SF Flow Group Membership: Base",
-                                      "SF Stock Group Membership: Base",
-                                      "SF Output Options: Base - Summary Stock & Flow",
-                                      "SF Initial Stocks: Base",
-                                      "SF Flow Pathways: Wetland Forested",
-                                      "CBM Crosswalk - Disturbance",
-                                      "Load CBM Output - Harvest - Wetland Forest",
                                       "Pipeline - Generate Flow Multipliers"])
 
 add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, cbmcfs3_folder_id)

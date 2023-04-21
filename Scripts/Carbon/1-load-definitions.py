@@ -42,6 +42,7 @@ if saveDatasheets:
     mySession = ps.Session()
     mySession.add_packages("stsim")
     mySession.add_packages("stsimsf")
+    mySession.add_packages("stsimcbmcfs3")
     
     # Uses the default SyncroSim session
     myLibrary = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_FILE_NAME_BARE_LAND_SPINUP),
@@ -54,7 +55,7 @@ if saveDatasheets:
 # Set local variables
 TreeCoverLabel = "Forest"
 WetlandLabel = "Wetland"
-modelsToInclude = [TreeCoverLabel, WetlandLabel]
+modelsToInclude = [TreeCoverLabel]
 
 ## ST-Sim Terminology ---- (updated)
 datasheetName = "stsim_Terminology"

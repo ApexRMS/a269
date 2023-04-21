@@ -48,7 +48,7 @@ exportDatasheets = True # Set to True to export datasheet as csv
 stateAttributeTypes = pd.read_csv(os.path.join(CUSTOM_DEF_CBM_SPINUP_DIR,
                                                "stsim_StateAttributeType.csv"))
 stateClasses = pd.read_csv(os.path.join(CUSTOM_DEF_CBM_SPINUP_DIR,
-                                        "stsim_StateClass-cbmcfs3.csv"))
+                                        "stsim_StateClass.csv"))
 
 if saveDatasheets:
     # Set up SyncroSim session if saveDatasheets = True

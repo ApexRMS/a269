@@ -120,6 +120,8 @@ def finalize_datasheets(save, export, ssimObject, datasheetName, datasheet,
     if save: 
         ssimObject.save_datasheet(name = datasheetName, data = datasheet)
     if export:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
         filepath = os.path.join(folder, datasheetName + csv_append + ".csv")
         datasheet.to_csv(filepath, index = False, float_format="%.10f")
 
