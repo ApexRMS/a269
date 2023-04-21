@@ -175,8 +175,8 @@ STATE_CLASSES_TO_INCLUDE = [STATE_CLASS_GRASS, STATE_CLASS_WATER, STATE_CLASS_AG
 # Transitions ----
 CBM_FOREST_CLEARCUT_TRANSITION = "Forest Harvest: Forest Clearcut"
 CBM_FOREST_FIRE_TRANSITION = "Fire: High Severity"
-FOREST_CLEARCUT_TRANSITION = "Disturbance: Harvest (Clearcut)"
-FOREST_FIRE_TRANSITION = "Disturbance: Fire (High Severity)"
+FOREST_CLEARCUT_TRANSITION = "Disturbance: Clearcut"
+FOREST_FIRE_TRANSITION = "Disturbance: Fire"
 TRANSITIONS_TO_INCLUDE = [FOREST_CLEARCUT_TRANSITION, FOREST_FIRE_TRANSITION]
 CUSTOM_LULC_TRANSITIONS = ["Wetland -> Wetland", "Wetland -> Water", "Wetland -> Shore",
                            "Wetland -> Other", "Water -> Wetland", "Shore -> Wetland"]

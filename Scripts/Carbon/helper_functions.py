@@ -1160,6 +1160,10 @@ def save_spinup_flow_results(data, origin, ds_names, csv_suffix,
   for i in range(0, len(data)):
 
       folderpath = os.path.join(folder, "Forecast Model", ds_names[i])
+
+      if not os.path.exists(folderpath):
+          os.makedirs(folderpath)
+          
       filename = ds_names[i] + origin + csv_suffix + ".csv"
       filepath = os.path.join(folderpath, filename)
 
