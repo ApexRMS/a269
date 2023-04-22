@@ -71,6 +71,7 @@ CONUS_CARBON_CBM_OUTPUT_DIR = os.path.join(CONUS_CARBON_DATA_DIR, "Tabular", "CB
 # Custom
 CUSTOM_CARBON_DATA_DIR = os.path.join(DATA_DIR, "Tabular")
 CUSTOM_CARBON_CBM_DATA_DIR = os.path.join(CUSTOM_CARBON_DATA_DIR, "CBMCFS3 Spinup")
+CUSTOM_CARBON_DATASHEET_DIR = os.path.join(CUSTOM_CARBON_DATA_DIR, "Datasheets")
 
 # CBM output files
 CONUS_CARBON_CBM_OUTPUT_DIR = os.path.join(CUSTOM_CARBON_DATA_DIR, "CBM Output Files")
@@ -104,11 +105,11 @@ CUSTOM_CARBON_SUB_CBM_SPINUP_DIR = os.path.join(CUSTOM_CARBON_SUBSCENARIOS_DIR, 
 CUSTOM_MERGED_SUBSCENARIOS_DIR = os.path.join(CUSTOM_CARBON_SUBSCENARIOS_DIR, "Forecast Model")
 
 ## Library information ----
-LIBRARY_CARBON_LULC_FILE_NAME = "LA LULC Change - Coastal Zone"
+LIBRARY_CARBON_LULC_FILE_NAME = "ECCC cavity nests model.ssim"
 LIBRARY_FILE_NAME_BARE_LAND_SPINUP = "cbm-cfs3-spinup-flows.ssim"
 
 ## Model Terminology ----
-AREA_UNITS = "Acres"
+AREA_UNITS = "Hectares"
 
 # Changed for LA
 PRIMARY_STRATUM = "BEC Variant"

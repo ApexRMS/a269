@@ -72,6 +72,7 @@ data = retrieve_generate_multipliers_outputs(myProject, result_scenario_ids_harv
 cbm_to_nestweb_crosswalk
 data[0].head()
 
+# Below not DRY - fix later
 # Only keep values in data that are contained in the crosswalk
 data[0] = data[0][data[0]["StateClassID"].isin(cbm_to_nestweb_crosswalk["CBM Forest State Class"].unique())]
 data[0]["StateClassID"] = data[0]["StateClassID"].replace(cbm_to_nestweb_crosswalk[0:4].set_index(
