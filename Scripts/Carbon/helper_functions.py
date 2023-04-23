@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
+import io
 import subprocess
 from dask.distributed import Client, Lock
 import glob
@@ -1031,6 +1032,29 @@ def retrieve_folder_id(name):
     folder_ids = pd.read_csv(os.path.join(CUSTOM_INTERMEDIATES_DIR, "folder_ids.csv"))
     folder_id = str(folder_ids[folder_ids.folder_name == name].folder_id.iloc[0])
     return folder_id
+
+def list_folders_in_library(session, library):
+    """
+    List folders in a library
+
+    Parameters
+    ----------
+    session : pysyncrosim.Session
+        Session object
+    library : pysyncrosim.Library
+        Library object
+
+    Returns
+    -------
+    None.
+    """
+    command = "\"" + os.path.join(session.location, "SyncroSim.Console.exe\"") \
+      + " --list --folders --lib=\"" + library.location + "\" --csv"
+    out = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
+    out = out.stdout.decode("utf-8")
+    out = pd.read_csv(io.StringIO(out))
+
+    return out
 
 # Functions for extracting results ----------------------------------------
 def convert_stock_outputs_to_sav(myProject, scenarioName, initial_stock_data, 

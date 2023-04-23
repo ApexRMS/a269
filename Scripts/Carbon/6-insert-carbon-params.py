@@ -36,6 +36,8 @@ my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FIL
 
 my_project = my_library.projects(name = "Definitions")
 
+folder_df = list_folders_in_library(my_session, my_library)
+
 ### Modify Definitions ----
 # Add Attribute Group
 my_datasheet = my_project.datasheets(name = "stsim_AttributeGroup")
@@ -114,6 +116,10 @@ my_datasheet["AgeMin"] = my_datasheet.AgeMin.astype("Int64")
 my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
+# Add scenario to state attribute values folder and add as a dependency to full scenarios
+fid = str(folder_df[folder_df.Name.str.contains("State Attribute Values")].iloc[0].ID)
+add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
+
 ## New
 # Append to Initial Stocks - both spatial and non-spatial - just do non-spatial for now
 scenario_name = "Initial Stocks Non Spatial"
@@ -131,6 +137,10 @@ datasheet_name = "stsimsf_StockTypeGroupMembership"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
+# Add scenario to stock flow folder and add as a dependency to full scenarios
+fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
+add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
+
 # Add Flow Group Membership
 scenario_name = "Flow Group Membership"
 my_scenario = my_project.scenarios(name = scenario_name)
@@ -138,9 +148,17 @@ datasheet_name = "stsimsf_FlowTypeGroupMembership"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
+# Add scenario to stock flow folder and add as a dependency to full scenarios
+fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
+add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
+
 # Add Flow Order
 scenario_name = "Flow Order"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsimsf_FlowOrder"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
+
+# Add scenario to stock flow folder and add as a dependency to full scenarios
+fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
+add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
