@@ -48,6 +48,7 @@ my_project.save_datasheet(name = "stsim_AttributeGroup", data = my_datasheet)
 
 # Add Stock Groups
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, "stsimsf_StockGroup.csv"))
+my_datasheet = my_datasheet[~my_datasheet.Name.str.contains("tons C/ha")]
 my_project.save_datasheet(name = "stsimsf_StockGroup", data = my_datasheet)
 
 # Add Flow Groups
@@ -140,6 +141,7 @@ scenario_name = "Stock Group Membership"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsimsf_StockTypeGroupMembership"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
+my_datasheet = my_datasheet[~my_datasheet.StockGroupID.str.contains("tons C/ha")]
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 # Add scenario to stock flow folder
@@ -162,6 +164,10 @@ new_dependencies.append(scenario_name)
 # Add Flow Order
 scenario_name = "Flow Order"
 my_scenario = my_project.scenarios(name = scenario_name)
+datasheet_name = "stsimsf_FlowOrderOptions"
+my_datasheet= pd.DataFrame({"ApplyBeforeTransitions": [True], 
+                           "ApplyEquallyRankedSimultaneously": [True]})
+my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 datasheet_name = "stsimsf_FlowOrder"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
