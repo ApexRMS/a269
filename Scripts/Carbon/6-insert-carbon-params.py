@@ -9,10 +9,10 @@ import sys
 
 # Load paths to retrieve helper functions and constants
 cwd = os.getcwd()
-root_dir = cwd.split(r"a275")[0] + "a275"
+root_dir = cwd.split(r"nestweb")[0] + "nestweb"
 
 # Set working directory
-os.chdir(os.path.join(root_dir, "Scripts/CONUS/Carbon Preprocessing/Forest/Spinup + Flows"))
+os.chdir(os.path.join(root_dir, "Scripts/Carbon"))
 
 # Add Scripts directory to path
 sys.path.append(os.path.join(root_dir, "Scripts"))
@@ -37,6 +37,8 @@ my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FIL
 my_project = my_library.projects(name = "Definitions")
 
 folder_df = list_folders_in_library(my_session, my_library)
+
+new_dependencies = []
 
 ### Modify Definitions ----
 # Add Attribute Group
@@ -73,6 +75,7 @@ my_project.save_datasheet(name = "stsimsf_FlowType", data = my_datasheet)
 ### Modifiy Scenarios ---- should create new scenarios and merge / or just append?
 ## From CBM
 # Append to Flow Pathways
+# TODO: append grassland flow pathways
 scenario_name = "Flow Pathways"
 my_scenario = my_project.scenarios(name = scenario_name)
 
@@ -94,6 +97,7 @@ my_datasheet.replace(CBM_FOREST_CLEARCUT_TRANSITION + " [Type]", FOREST_CLEARCUT
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 # Append to Flow Multipliers
+# TODO: append grassland flow multipliers
 scenario_name = "Flow Multipliers"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsimsf_FlowMultiplier"
@@ -106,7 +110,7 @@ my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 # Append to State Attribute Values - also need to add this scenario as a dependency and 
-# store in correct folder
+# TODO: append grassland state attribute values
 scenario_name = "State Attribute Values - Carbon Stocks & Flows"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsim_StateAttributeValue"
@@ -116,9 +120,10 @@ my_datasheet["AgeMin"] = my_datasheet.AgeMin.astype("Int64")
 my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
-# Add scenario to state attribute values folder and add as a dependency to full scenarios
+# Add scenario to state attribute values folder
 fid = str(folder_df[folder_df.Name.str.contains("State Attribute Values")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
+new_dependencies.append(scenario_name)
 
 ## New
 # Append to Initial Stocks - both spatial and non-spatial - just do non-spatial for now
@@ -137,9 +142,10 @@ datasheet_name = "stsimsf_StockTypeGroupMembership"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
-# Add scenario to stock flow folder and add as a dependency to full scenarios
+# Add scenario to stock flow folder
 fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
+new_dependencies.append(scenario_name)
 
 # Add Flow Group Membership
 scenario_name = "Flow Group Membership"
@@ -148,9 +154,10 @@ datasheet_name = "stsimsf_FlowTypeGroupMembership"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
-# Add scenario to stock flow folder and add as a dependency to full scenarios
+# Add scenario to stock flow folder
 fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
+new_dependencies.append(scenario_name)
 
 # Add Flow Order
 scenario_name = "Flow Order"
@@ -159,6 +166,17 @@ datasheet_name = "stsimsf_FlowOrder"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
-# Add scenario to stock flow folder and add as a dependency to full scenarios
+# Add scenario to stock flow folder
 fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
+new_dependencies.append(scenario_name)
+
+# Add new scenarios as dependencies to full scenarios - 
+# state attribute values, flow group membership, stock group membership, & flow order
+scenario_name = "Single Cell - No Disturbance"
+my_scenario = my_project.scenarios(name = scenario_name)
+my_scenario.dependencies(new_dependencies)
+
+scenario_name = "Single Cell - Fire"
+my_scenario = my_project.scenarios(name = scenario_name)
+my_scenario.dependencies(new_dependencies)

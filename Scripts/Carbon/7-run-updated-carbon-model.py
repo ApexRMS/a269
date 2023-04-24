@@ -9,10 +9,10 @@ import sys
 
 # Load paths to retrieve helper functions and constants
 cwd = os.getcwd()
-root_dir = cwd.split(r"a275")[0] + "a275"
+root_dir = cwd.split(r"nestweb")[0] + "nestweb"
 
 # Set working directory
-os.chdir(os.path.join(root_dir, "Scripts/CONUS/Carbon Preprocessing/Forest/Spinup + Flows"))
+os.chdir(os.path.join(root_dir, "Scripts/Carbon"))
 
 # Add Scripts directory to path
 sys.path.append(os.path.join(root_dir, "Scripts"))

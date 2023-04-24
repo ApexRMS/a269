@@ -113,6 +113,7 @@ for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique()
 
 data[1] = pd.concat([data[1], forest_unknown_data])
 
+lulc_data = data[2][data[2].FromStateClassID.isnull()]
 data[2].FromStateClassID.unique()
 data[2] = data[2][data[2]["FromStateClassID"].isin(cbm_to_nestweb_crosswalk["CBM Forest State Class"].unique())]
 data[2]["FromStateClassID"] = data[2]["FromStateClassID"].replace(cbm_to_nestweb_crosswalk[0:4].set_index(
@@ -131,7 +132,7 @@ for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique()
     data_new["FromStratumID"] = primary_stratum
     forest_unknown_data = pd.concat([forest_unknown_data, data_new])
 
-data[2] = pd.concat([data[2], forest_unknown_data])
+data[2] = pd.concat([lulc_data, data[2], forest_unknown_data])
 
 # data = convert_output_for_forecast(data)
 save_spinup_flow_results(data, origin, ds_names, cbm_output_suffix, TransitionGroupsToInclude)
@@ -178,6 +179,7 @@ for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique()
 
 data[1] = pd.concat([data[1], forest_unknown_data])
 
+lulc_data = data[2][data[2].FromStateClassID.isnull()]
 data[2].FromStateClassID.unique()
 data[2] = data[2][data[2]["FromStateClassID"].isin(cbm_to_nestweb_crosswalk["CBM Forest State Class"].unique())]
 data[2]["FromStateClassID"] = data[2]["FromStateClassID"].replace(cbm_to_nestweb_crosswalk[0:4].set_index(
@@ -196,6 +198,6 @@ for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique()
     data_new["FromStratumID"] = primary_stratum
     forest_unknown_data = pd.concat([forest_unknown_data, data_new])
 
-data[2] = pd.concat([data[2], forest_unknown_data])
+data[2] = pd.concat([lulc_data, data[2], forest_unknown_data])
 # data = convert_output_for_forecast(data)
 save_spinup_flow_results(data, origin, ds_names, cbm_output_suffix, TransitionGroupsToInclude)
