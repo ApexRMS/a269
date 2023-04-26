@@ -1,0 +1,94 @@
+StockTypeID,StockGroupID,Value
+Biomass: Coarse Root,Biomass: Belowground,
+Biomass: Coarse Root,Biomass: Coarse Root (tons C/ha),2.4700
+Biomass: Coarse Root,Biomass: Total,
+Biomass: Coarse Root,Total Ecosystem,
+Biomass: Coarse Root,Total Ecosystem (tons C/ha),2.4700
+Biomass: Fine Root,Biomass: Belowground,
+Biomass: Fine Root,Biomass: Fine Root (tons C/ha),2.4700
+Biomass: Fine Root,Biomass: Total,
+Biomass: Fine Root,Total Ecosystem,
+Biomass: Fine Root,Total Ecosystem (tons C/ha),2.4700
+Biomass: Foliage,Biomass: Aboveground,
+Biomass: Foliage,Biomass: Foliage (tons C/ha),2.4700
+Biomass: Foliage,Biomass: Total,
+Biomass: Foliage,Total Ecosystem,
+Biomass: Foliage,Total Ecosystem (tons C/ha),2.4700
+Biomass: Merchantable,Biomass: Aboveground,
+Biomass: Merchantable,Biomass: Merchantable (tons C/ha),2.4700
+Biomass: Merchantable,Biomass: Total,
+Biomass: Merchantable,Total Ecosystem,
+Biomass: Merchantable,Total Ecosystem (tons C/ha),2.4700
+Biomass: Other Wood,Biomass: Aboveground,
+Biomass: Other Wood,Biomass: Other Wood (tons C/ha),2.4700
+Biomass: Other Wood,Biomass: Total,
+Biomass: Other Wood,Total Ecosystem,
+Biomass: Other Wood,Total Ecosystem (tons C/ha),2.4700
+Deep Soil,Deep Soil (tons C/ha),2.4700
+Deep Soil,DOM: Soil,
+Deep Soil,Total Ecosystem,
+Deep Soil,Total Ecosystem (tons C/ha),2.4700
+DOM: Aboveground Fast,DOM: Aboveground Fast (tons C/ha),2.4700
+DOM: Aboveground Fast,DOM: Belowground,
+DOM: Aboveground Fast,DOM: Litter,
+DOM: Aboveground Fast,DOM: No Soil,
+DOM: Aboveground Fast,DOM: Total,
+DOM: Aboveground Fast,Total Ecosystem,
+DOM: Aboveground Fast,Total Ecosystem (tons C/ha),2.4700
+DOM: Aboveground Medium,DOM: Aboveground Medium (tons C/ha),2.4700
+DOM: Aboveground Medium,DOM: Belowground,
+DOM: Aboveground Medium,DOM: Deadwood,
+DOM: Aboveground Medium,DOM: Down Deadwood,
+DOM: Aboveground Medium,DOM: No Soil,
+DOM: Aboveground Medium,DOM: Total,
+DOM: Aboveground Medium,Total Ecosystem,
+DOM: Aboveground Medium,Total Ecosystem (tons C/ha),2.4700
+DOM: Aboveground Slow,DOM: Aboveground Slow (tons C/ha),2.4700
+DOM: Aboveground Slow,DOM: Belowground,
+DOM: Aboveground Slow,DOM: Soil,
+DOM: Aboveground Slow,DOM: Total,
+DOM: Aboveground Slow,Total Ecosystem,
+DOM: Aboveground Slow,Total Ecosystem (tons C/ha),2.4700
+DOM: Aboveground Very Fast,DOM: Aboveground Very Fast (tons C/ha),2.4700
+DOM: Aboveground Very Fast,DOM: Belowground,
+DOM: Aboveground Very Fast,DOM: Litter,
+DOM: Aboveground Very Fast,DOM: No Soil,
+DOM: Aboveground Very Fast,DOM: Total,
+DOM: Aboveground Very Fast,Total Ecosystem,
+DOM: Aboveground Very Fast,Total Ecosystem (tons C/ha),2.4700
+DOM: Belowground Fast,DOM: Belowground,
+DOM: Belowground Fast,DOM: Belowground Fast (tons C/ha),2.4700
+DOM: Belowground Fast,DOM: Deadwood,
+DOM: Belowground Fast,DOM: Down Deadwood,
+DOM: Belowground Fast,DOM: No Soil,
+DOM: Belowground Fast,DOM: Total,
+DOM: Belowground Fast,Total Ecosystem,
+DOM: Belowground Fast,Total Ecosystem (tons C/ha),2.4700
+DOM: Belowground Slow,DOM: Belowground,
+DOM: Belowground Slow,DOM: Belowground Slow (tons C/ha),2.4700
+DOM: Belowground Slow,DOM: Soil,
+DOM: Belowground Slow,DOM: Total,
+DOM: Belowground Slow,Total Ecosystem,
+DOM: Belowground Slow,Total Ecosystem (tons C/ha),2.4700
+DOM: Belowground Very Fast,DOM: Belowground,
+DOM: Belowground Very Fast,DOM: Belowground Very Fast (tons C/ha),2.4700
+DOM: Belowground Very Fast,DOM: Soil,
+DOM: Belowground Very Fast,DOM: Total,
+DOM: Belowground Very Fast,Total Ecosystem,
+DOM: Belowground Very Fast,Total Ecosystem (tons C/ha),2.4700
+DOM: Snag Branch,DOM: Aboveground,
+DOM: Snag Branch,DOM: Deadwood,
+DOM: Snag Branch,DOM: No Soil,
+DOM: Snag Branch,DOM: Snag Branch (tons C/ha),2.4700
+DOM: Snag Branch,DOM: Standing Deadwood,
+DOM: Snag Branch,DOM: Total,
+DOM: Snag Branch,Total Ecosystem,
+DOM: Snag Branch,Total Ecosystem (tons C/ha),2.4700
+DOM: Snag Stem,DOM: Aboveground,
+DOM: Snag Stem,DOM: Deadwood,
+DOM: Snag Stem,DOM: No Soil,
+DOM: Snag Stem,DOM: Snag Stem (tons C/ha),2.4700
+DOM: Snag Stem,DOM: Standing Deadwood,
+DOM: Snag Stem,DOM: Total,
+DOM: Snag Stem,Total Ecosystem,
+DOM: Snag Stem,Total Ecosystem (tons C/ha),2.4700
