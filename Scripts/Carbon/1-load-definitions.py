@@ -35,7 +35,6 @@ import pandas as pd
 # Set preferences for saving and exporting definitions
 saveDatasheets = True # Set to True to save datasheet back to library
 exportDatasheets = True # Set to True to export datasheet as csv
-spinup_suffix = "-cbmcfs3"
 
 if saveDatasheets:
     # Set up SyncroSim session if saveDatasheets = True
@@ -72,8 +71,8 @@ finalize_datasheets(saveDatasheets, exportDatasheets, myProject, datasheetName, 
 
 # ST-Sim Strata ----
 datasheetName = "stsim_Stratum"
-myDatasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_CBM_DATA_DIR,
-    datasheetName + ".csv"))
+myDatasheet = pd.DataFrame({"Name": [PRIMARY_STRATUM_VALUE],
+                            "ID": [1]})
 finalize_datasheets(saveDatasheets, exportDatasheets, myProject, datasheetName, myDatasheet,
                     folder=CUSTOM_DEF_CBM_SPINUP_DIR)
 

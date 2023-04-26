@@ -178,16 +178,6 @@ myDatasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_SUB_CBM_SPINUP_DIR,
 myScenario.save_datasheet(datasheetName, myDatasheet)
 add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, subscenario_folder_id)
 
-# Harvest - Forest
-scenarioName = "CBM Crosswalk - Spatial Unit and Species Type - Harvest - Forest"
-myScenario = myProject.scenarios(scenarioName)
-
-datasheetName = "stsimcbmcfs3_CrosswalkSpecies"
-myDatasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_SUB_CBM_SPINUP_DIR,
-                          datasheetName, datasheetName + FOREST_SUFFIX + "_Harvest.csv")) 
-myScenario.save_datasheet(datasheetName, myDatasheet)
-add_scenario_to_folder(mySession, myLibrary, myProject, myScenario, subscenario_folder_id)
-
 # CBM Crosswalk - Disturbance -----------------------------
 scenarioName = "CBM Crosswalk - Disturbance"
 myScenario = myProject.scenarios(scenarioName)

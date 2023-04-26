@@ -227,7 +227,7 @@ WATER_SHORE_SUFFIX = "_WaterShore"
 OTHER_SUFFIX = "_Other"
 
 # For single stratum
-PRIMARY_STRATUM_VALUE = "Mississippi Alluvial Plain"
+PRIMARY_STRATUM_VALUE = "All Strata"
 SECONDARY_STRATUM_VALUE = None
 TERTIARY_STRATUM_VALUE = "Oak/Gum/Cypress Group"
 

@@ -32,6 +32,9 @@ from constants import *
 import pandas as pd
 import pysyncrosim as ps
 
+# Load crosswalk from cbm data to nestweb data
+cbm_to_nestweb_crosswalk = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "nestweb_to_cbm_forest_groups.csv"))
+
 # Create directories for initial conditions and transition targets
 create_subscenario_dir("stsimcbmcfs3_CrosswalkDisturbance", dir_name=CUSTOM_CARBON_SUB_CBM_SPINUP_DIR)
 create_subscenario_dir("stsimcbmcfs3_CrosswalkSpecies", dir_name=CUSTOM_CARBON_SUB_CBM_SPINUP_DIR)
@@ -93,6 +96,9 @@ myDatasheet.CBMOutputFile = CONUS_CARBON_CBM_OUTPUT_DIR + os.sep + myDatasheet.C
 myDatasheet["StratumID"] = PRIMARY_STRATUM_VALUE
 myDatasheet["SecondaryStratumID"] = SECONDARY_STRATUM_VALUE
 
+# Filter datasheet for only required forest type groups
+myDatasheet = myDatasheet[myDatasheet.StateClassID.isin(cbm_to_nestweb_crosswalk["CBM Forest State Class"].unique())]
+
 finalize_datasheets(saveDatasheets,
                     exportDatasheets,
                     myScenario,
@@ -101,26 +107,6 @@ finalize_datasheets(saveDatasheets,
                     os.path.join(CUSTOM_CARBON_SUB_CBM_SPINUP_DIR,
                                  datasheetName),
                     csv_append=FOREST_SUFFIX + "_Fire")
-
-# Harvest - Forest
-scenarioName = "CBM Crosswalk - Spatial Unit and Species Type - Harvest - Forest"
-if saveDatasheets:
-    myScenario = myProject.scenarios(name = scenarioName)
-
-datasheetName = "stsimcbmcfs3_CrosswalkSpecies"
-myDatasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_CBM_DATA_DIR, datasheetName + FOREST_SUFFIX + "_Harvest.csv"))
-myDatasheet.CBMOutputFile = CONUS_CARBON_CBM_OUTPUT_DIR + os.sep + myDatasheet.CBMOutputFile
-myDatasheet["StratumID"] = PRIMARY_STRATUM_VALUE
-myDatasheet["SecondaryStratumID"] = SECONDARY_STRATUM_VALUE
-
-finalize_datasheets(saveDatasheets,
-                    exportDatasheets,
-                    myScenario,
-                    datasheetName,
-                    myDatasheet, 
-                    os.path.join(CUSTOM_CARBON_SUB_CBM_SPINUP_DIR,
-                                 datasheetName),
-                    csv_append=FOREST_SUFFIX + "_Harvest")
 
 # CBM Crosswalk - Disturbance--------------------------------
 scenarioName = "CBM Crosswalk - Disturbance"
