@@ -38,6 +38,9 @@ my_project = my_library.projects(name = "Definitions")
 
 folder_df = list_folders_in_library(my_session, my_library)
 
+# Load crosswalk from cbm data to nestweb data
+cbm_to_nestweb_crosswalk = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "nestweb_to_cbm_forest_groups.csv"))
+
 new_dependencies = []
 
 ### Modify Definitions ----
@@ -54,6 +57,10 @@ my_project.save_datasheet(name = "stsimsf_StockGroup", data = my_datasheet)
 # Add Flow Groups
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, "stsimsf_FlowGroup.csv"))
 my_project.save_datasheet(name = "stsimsf_FlowGroup", data = my_datasheet)
+
+# Add Flow Multiplier Types
+my_datasheet = pd.DataFrame({"Name": "Origin " + cbm_to_nestweb_crosswalk[0:4]["Nestweb Forest State Class"].unique()})
+my_project.save_datasheet(name = "stsimsf_FlowMultiplierType", data = my_datasheet)    
 
 # Append to State Attribute Types
 my_datasheet = my_project.datasheets(name = "stsim_StateAttributeType")
@@ -73,7 +80,7 @@ new_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, "stsimsf_Flow
 my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
 my_project.save_datasheet(name = "stsimsf_FlowType", data = my_datasheet)
 
-### Modifiy Scenarios ---- should create new scenarios and merge / or just append?
+### Modifiy Scenarios ----
 ## From CBM
 # Append to Flow Pathways
 scenario_name = "Flow Pathways"
@@ -95,6 +102,11 @@ my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
 grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 grass_values = grass_values[grass_values["FromStateClassID"] == STATE_CLASS_GRASS]
 my_datasheet = pd.concat([my_datasheet, grass_values], ignore_index = True)
+
+# Add some transition triggered flows - when LULC: Forest -> Cropland/Developed, add forest fps for cropland/developed
+new_values[~new_values.FromStateClassID.isnull()]
+new_values[new_values.FromStateClassID.str.contains("Forest")]
+
 my_datasheet.replace(CBM_FOREST_FIRE_TRANSITION + " [Type]", FOREST_FIRE_TRANSITION + " [Type]", inplace=True)
 my_datasheet.replace(CBM_FOREST_CLEARCUT_TRANSITION + " [Type]", FOREST_CLEARCUT_TRANSITION + " [Type]", inplace=True)
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
