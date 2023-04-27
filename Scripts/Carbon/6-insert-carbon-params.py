@@ -76,7 +76,6 @@ my_project.save_datasheet(name = "stsimsf_FlowType", data = my_datasheet)
 ### Modifiy Scenarios ---- should create new scenarios and merge / or just append?
 ## From CBM
 # Append to Flow Pathways
-# TODO: append grassland flow pathways
 scenario_name = "Flow Pathways"
 my_scenario = my_project.scenarios(name = scenario_name)
 
@@ -93,12 +92,14 @@ my_datasheet = my_scenario.datasheets(name = datasheet_name)
 new_values = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name, 
                                       datasheet_name + "_fire_cbm_output.csv"))
 my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
+grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
+grass_values = grass_values[grass_values["FromStateClassID"] == STATE_CLASS_GRASS]
+my_datasheet = pd.concat([my_datasheet, grass_values], ignore_index = True)
 my_datasheet.replace(CBM_FOREST_FIRE_TRANSITION + " [Type]", FOREST_FIRE_TRANSITION + " [Type]", inplace=True)
 my_datasheet.replace(CBM_FOREST_CLEARCUT_TRANSITION + " [Type]", FOREST_CLEARCUT_TRANSITION + " [Type]", inplace=True)
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 # Append to Flow Multipliers
-# TODO: append grassland flow multipliers
 scenario_name = "Flow Multipliers"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsimsf_FlowMultiplier"
@@ -106,17 +107,23 @@ my_datasheet = my_scenario.datasheets(name = datasheet_name)
 new_values = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name,
                                         datasheet_name + "_fire_cbm_output.csv"))
 my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
+grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
+grass_values = grass_values[grass_values["StateClassID"] == STATE_CLASS_GRASS]
+grass_values["StratumID"] = PRIMARY_STRATUM_VALUE
+my_datasheet = pd.concat([my_datasheet, grass_values], ignore_index = True)
 my_datasheet["AgeMin"] = my_datasheet.AgeMin.astype("Int64")
 my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 # Append to State Attribute Values - also need to add this scenario as a dependency and 
-# TODO: append grassland state attribute values
 scenario_name = "State Attribute Values - Carbon Stocks & Flows"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsim_StateAttributeValue"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name,
                                         datasheet_name + "_fire_cbm_output.csv"))
+grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + "_ShrubGrass.csv"))
+grass_values = grass_values[grass_values["StateClassID"] == STATE_CLASS_GRASS]
+my_datasheet = pd.concat([my_datasheet, grass_values], ignore_index = True)
 my_datasheet["AgeMin"] = my_datasheet.AgeMin.astype("Int64")
 my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
