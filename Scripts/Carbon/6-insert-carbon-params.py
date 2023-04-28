@@ -127,13 +127,18 @@ for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique()
     new_values.loc[new_values["StratumID"] == primary_stratum, "TertiaryStratumID"] = "Origin " + state_class_nw
 
 # Add cropland/developed flow multipliers for when transitioning from forest
+forest_origins = cbm_to_nestweb_crosswalk[0:4]["Nestweb Forest State Class"].unique()
+cropland_values = new_values[new_values.StateClassID.isin(forest_origins)]
+cropland_values["StateClassID"] = STATE_CLASS_AGRICULTURE
+developed_values = new_values[new_values.StateClassID.isin(forest_origins)]
+developed_values["StateClassID"] = STATE_CLASS_DEVELOPED
 
-
-my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
+# Add grassland multipliers
 grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 grass_values = grass_values[grass_values["StateClassID"] == STATE_CLASS_GRASS]
-grass_values["StratumID"] = PRIMARY_STRATUM_VALUE
-my_datasheet = pd.concat([my_datasheet, grass_values], ignore_index = True)
+grass_values["StratumID"] = np.NaN
+
+my_datasheet = pd.concat([my_datasheet, new_values, cropland_values, developed_values, grass_values], ignore_index = True)
 my_datasheet["AgeMin"] = my_datasheet.AgeMin.astype("Int64")
 my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
