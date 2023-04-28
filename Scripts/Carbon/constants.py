@@ -69,6 +69,7 @@ CONUS_CARBON_DATA_DIR = os.path.join(DATA_DIR, "CONUS", "Carbon")
 CONUS_CARBON_CBM_OUTPUT_DIR = os.path.join(CONUS_CARBON_DATA_DIR, "Tabular", "CBM Output Files")
 
 # Custom
+CUSTOM_CARBON_SPATIAL_DATA_DIR = os.path.join(DATA_DIR, "Spatial")
 CUSTOM_CARBON_DATA_DIR = os.path.join(DATA_DIR, "Tabular")
 CUSTOM_CARBON_CBM_DATA_DIR = os.path.join(CUSTOM_CARBON_DATA_DIR, "CBMCFS3 Spinup")
 CUSTOM_CARBON_DATASHEET_DIR = os.path.join(CUSTOM_CARBON_DATA_DIR, "Datasheets")

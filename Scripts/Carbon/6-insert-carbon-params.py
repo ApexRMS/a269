@@ -58,10 +58,6 @@ my_project.save_datasheet(name = "stsimsf_StockGroup", data = my_datasheet)
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, "stsimsf_FlowGroup.csv"))
 my_project.save_datasheet(name = "stsimsf_FlowGroup", data = my_datasheet)
 
-# Add Flow Multiplier Types
-my_datasheet = pd.DataFrame({"Name": "Origin " + cbm_to_nestweb_crosswalk[0:4]["Nestweb Forest State Class"].unique()})
-my_project.save_datasheet(name = "stsimsf_FlowMultiplierType", data = my_datasheet)    
-
 # Append to State Attribute Types
 my_datasheet = my_project.datasheets(name = "stsim_StateAttributeType")
 new_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, "stsim_StateAttributeType.csv"))
@@ -118,6 +114,21 @@ datasheet_name = "stsimsf_FlowMultiplier"
 my_datasheet = my_scenario.datasheets(name = datasheet_name)
 new_values = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name,
                                         datasheet_name + "_fire_cbm_output.csv"))
+
+# Add tertiary stratum to forest flow multipliers
+tertiary_stratum = my_project.datasheets("stsim_TertiaryStratum")
+new_values.TertiaryStratumID = "Origin " + new_values.StateClassID
+
+for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique():
+    state_class = cbm_to_nestweb_crosswalk[cbm_to_nestweb_crosswalk["BEC Variant"] == primary_stratum]["CBM Forest State Class"].item()
+    state_class_nw = cbm_to_nestweb_crosswalk[0:4][cbm_to_nestweb_crosswalk[0:4][
+        "CBM Forest State Class"] == state_class]["Nestweb Forest State Class"].item()
+    
+    new_values.loc[new_values["StratumID"] == primary_stratum, "TertiaryStratumID"] = "Origin " + state_class_nw
+
+# Add cropland/developed flow multipliers for when transitioning from forest
+
+
 my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
 grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + ".csv"))
 grass_values = grass_values[grass_values["StateClassID"] == STATE_CLASS_GRASS]
