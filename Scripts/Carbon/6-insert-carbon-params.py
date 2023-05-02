@@ -26,6 +26,8 @@ from constants import *
 # import modules
 import pysyncrosim as ps
 import pandas as pd
+import rioxarray
+import rasterio as rio
 
 ### Load Library ----
 my_session = ps.Session()
@@ -41,6 +43,16 @@ folder_df = list_folders_in_library(my_session, my_library)
 # Load crosswalk from cbm data to nestweb data
 cbm_to_nestweb_crosswalk = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "nestweb_to_cbm_forest_groups.csv"))
 
+# Local vars
+no_data = -9999
+spatial_scenarios = ["Baseline Ownership with Disturbances: 2016 to 2046, 2MC",
+                     "Aspen Protection with Disturbances: 2016 to 2046, 2MC",
+                     "Military Land Protection with Disturbances: 2016 to 2046, 2MC"]
+
+# Create folder for storing rasters
+create_subscenario_dir("stsimsf_InitialStockSpatial", dir_name=CUSTOM_MERGED_SUBSCENARIOS_DIR)
+
+# Create empty list to store new scenario dependencies
 new_dependencies = []
 
 ### Modify Definitions ----
@@ -77,6 +89,7 @@ my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
 my_project.save_datasheet(name = "stsimsf_FlowType", data = my_datasheet)
 
 ### Modifiy Scenarios ----
+### Single Cell ---
 ## From CBM
 # Append to Flow Pathways
 scenario_name = "Flow Pathways"
@@ -149,6 +162,15 @@ my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsim_StateAttributeValue"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name,
                                         datasheet_name + "_fire_cbm_output.csv"))
+my_datasheet.TertiaryStratumID = "Origin " + my_datasheet.StateClassID
+
+for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique():
+    state_class = cbm_to_nestweb_crosswalk[cbm_to_nestweb_crosswalk["BEC Variant"] == primary_stratum]["CBM Forest State Class"].item()
+    state_class_nw = cbm_to_nestweb_crosswalk[0:4][cbm_to_nestweb_crosswalk[0:4][
+        "CBM Forest State Class"] == state_class]["Nestweb Forest State Class"].item()
+    
+    my_datasheet.loc[my_datasheet["StratumID"] == primary_stratum, "TertiaryStratumID"] = "Origin " + state_class_nw
+
 grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_name + "_ShrubGrass.csv"))
 grass_values = grass_values[grass_values["StateClassID"] == STATE_CLASS_GRASS]
 my_datasheet = pd.concat([my_datasheet, grass_values], ignore_index = True)
@@ -221,3 +243,90 @@ my_scenario.dependencies(new_dependencies)
 scenario_name = "Single Cell - Fire"
 my_scenario = my_project.scenarios(name = scenario_name)
 my_scenario.dependencies(new_dependencies)
+
+### Spatial ---
+# Update Initial Stocks Spatial
+# Load all required rasters
+my_scenario = my_project.scenarios(spatial_scenarios[0])
+scn_deps = my_scenario.dependencies()
+scn_name = scn_deps[scn_deps.Name.str.contains("Initial Conditions - ")].iloc[0].Name
+ic_spatial_scn = my_project.scenarios(name = scn_name)
+ic_spatial = ic_spatial_scn.datasheets("stsim_InitialConditionsSpatial", show_full_paths=True)
+
+forest_age_raster = rioxarray.open_rasterio(ic_spatial.AgeFileName.iloc[0])
+forest_type_raster = rioxarray.open_rasterio(ic_spatial.TertiaryStratumFileName.iloc[0])
+state_class_raster = rioxarray.open_rasterio(ic_spatial.StateClassFileName.iloc[0])
+
+# Grab raster metadata
+with rio.open(ic_spatial.AgeFileName.iloc[0]) as src:
+    meta = src.profile
+
+meta.update(dtype=rio.float32)
+raster_dims = forest_age_raster.shape
+raster_length = forest_age_raster.size
+
+cell_info = pd.DataFrame({"age": forest_age_raster.values.reshape(raster_length, -1).squeeze(),
+                          "forest_type_group": forest_type_raster.values.reshape(raster_length, -1).squeeze(),
+                          "state_class": state_class_raster.values.reshape(raster_length, -1).squeeze()})
+
+# Load state attribute values as lookup table
+sav_scenario_name = "State Attribute Values - Carbon Stocks & Flows"
+sav_scenario = my_project.scenarios(sav_scenario_name)
+sav_lookup = sav_scenario.datasheets("stsim_StateAttributeValue")
+
+# Convert age, forest type group, and state class to IDs for merging with cell info
+state_class_datasheet = my_project.datasheets("stsim_StateClass", optional=True)
+forest_type_datasheet = my_project.datasheets("stsim_TertiaryStratum", optional=True)
+
+sav_lookup["age"] = sav_lookup["AgeMin"].astype("Int64")
+
+sav_lookup = sav_lookup.merge(forest_type_datasheet[["Name", "ID"]], 
+                              left_on="TertiaryStratumID", right_on="Name")
+sav_lookup.rename(columns = {"ID": "forest_type_group"}, inplace=True)
+
+sav_lookup = sav_lookup.merge(state_class_datasheet[["Name", "ID"]], 
+                              left_on="StateClassID", right_on="Name")
+sav_lookup.rename(columns = {"ID": "state_class"}, inplace=True)
+
+# Retrieve datasheet with initial stocks
+stock_non_spatial_scenario_name = "Initial Stocks Non Spatial"
+stock_non_spatial_scenario = my_project.scenarios(stock_non_spatial_scenario_name)
+initial_stocks = stock_non_spatial_scenario.datasheets("stsimsf_InitialStockNonSpatial")
+initial_stocks_spatial = pd.DataFrame({"StockTypeID": [], "RasterFileName": []})
+
+# Loop through all available state attribute ids to create all input rasters
+for row in initial_stocks.itertuples():
+
+    sa_id = row.StateAttributeTypeID
+
+    if not sa_id.startswith("Carbon"):
+        continue
+
+    stock_id = row.StockTypeID
+    stock_id_clean = stock_id.split(":")[1].strip(" ")
+
+    sav_lookup_temp = sav_lookup[sav_lookup.StateAttributeTypeID == sa_id]
+    sav_lookup_temp = sav_lookup_temp[["age", "forest_type_group", "state_class", "Value"]]
+    sav_lookup_temp = sav_lookup_temp.drop_duplicates()
+
+    sav_lookup_temp.fillna(-9999, inplace=True)
+    no_data_row = pd.DataFrame({"age": [-9999],
+                                "forest_type_group": [-9999],
+                                "state_class": [-9999],
+                                "Value": [-9999]})
+    sav_lookup_temp = pd.concat([sav_lookup_temp, no_data_row])
+
+    # Merge state attribute value information with cell info and write to raster
+    raster_data = cell_info.merge(sav_lookup_temp, on=["age", "forest_type_group", "state_class"], how="left")
+    raster_data = np.array(raster_data.Value).reshape(1, raster_dims[1], -1)
+    filepath = os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, "stsimsf_InitialStockSpatial", f"{stock_id_clean}.tif")
+    with rio.open(filepath, 'w', **meta) as dst:
+        dst.write(raster_data)
+
+    # Fill datasheet with initial stocks
+    initial_stocks_spatial = pd.concat([initial_stocks_spatial, pd.DataFrame({"StockTypeID": [stock_id], "RasterFileName": [filepath]})])
+
+# Save datasheet with initial stocks
+scenario_name = "Initial Stocks Spatial"
+my_scenario = my_project.scenarios(name = scenario_name)
+my_scenario.save_datasheet("stsimsf_InitialStockSpatial", initial_stocks_spatial, append=True)
