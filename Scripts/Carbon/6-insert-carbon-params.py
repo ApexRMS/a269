@@ -101,7 +101,7 @@ new_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_nam
 new_values.replace("A1", "F1", inplace=True)
 new_values.replace("B1", "F2", inplace=True)
 my_datasheet = pd.concat([my_datasheet, new_values], ignore_index = True)
-my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
+# my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 datasheet_name = "stsimsf_FlowPathway"
 my_datasheet = my_scenario.datasheets(name = datasheet_name)
@@ -113,7 +113,7 @@ grass_values = grass_values[grass_values["FromStateClassID"] == STATE_CLASS_GRAS
 my_datasheet = pd.concat([my_datasheet, grass_values], ignore_index = True)
 
 # Add some transition triggered flows - when LULC: Forest -> Cropland/Developed, add forest fps for cropland/developed
-new_values[~new_values.FromStateClassID.isnull()]
+new_values = new_values[~new_values.FromStateClassID.isnull()]
 new_values[new_values.FromStateClassID.str.contains("Forest")]
 
 my_datasheet.replace(CBM_FOREST_FIRE_TRANSITION + " [Type]", FOREST_FIRE_TRANSITION + " [Type]", inplace=True)
@@ -258,8 +258,10 @@ forest_type_raster = rioxarray.open_rasterio(ic_spatial.TertiaryStratumFileName.
 state_class_raster = rioxarray.open_rasterio(ic_spatial.StateClassFileName.iloc[0])
 
 # Grab raster metadata
-with rio.open(ic_spatial.AgeFileName.iloc[0]) as src:
+with rio.open(ic_spatial.StratumFileName.iloc[0]) as src:
+    crs = src.crs
     meta = src.profile
+    
 
 meta.update(dtype=rio.float32)
 raster_dims = forest_age_raster.shape
@@ -321,6 +323,7 @@ for row in initial_stocks.itertuples():
     raster_data = np.array(raster_data.Value).reshape(1, raster_dims[1], -1)
     filepath = os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, "stsimsf_InitialStockSpatial", f"{stock_id_clean}.tif")
     with rio.open(filepath, 'w', **meta) as dst:
+        dst.crs = crs
         dst.write(raster_data)
 
     # Fill datasheet with initial stocks

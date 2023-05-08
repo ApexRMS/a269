@@ -179,13 +179,13 @@ finalize_datasheets(saveDatasheets, exportDatasheets, myProject, datasheetName, 
                     folder=CUSTOM_DEF_CBM_SPINUP_DIR)
 
 # CBM Ecological Boundary ------------------------------------------------------------
-datasheetName = "stsimcbmcfs3_EcoBoundary" # TODO change for KY-TN?
+datasheetName = "stsimcbmcfs3_EcoBoundary"
 myDatasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_CBM_DATA_DIR, datasheetName + ".csv"))
 finalize_datasheets(saveDatasheets, exportDatasheets, myProject, datasheetName, myDatasheet,
                     folder=CUSTOM_DEF_CBM_SPINUP_DIR)
 
 # CBM Administrative Boundary ------------------------------------------------------------
-datasheetName = "stsimcbmcfs3_AdminBoundary" # TODO change for KY-TN
+datasheetName = "stsimcbmcfs3_AdminBoundary"
 myDatasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_CBM_DATA_DIR, datasheetName + ".csv"))
 finalize_datasheets(saveDatasheets, exportDatasheets, myProject, datasheetName, myDatasheet,
                     folder=CUSTOM_DEF_CBM_SPINUP_DIR)
