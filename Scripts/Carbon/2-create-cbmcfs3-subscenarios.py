@@ -108,6 +108,26 @@ finalize_datasheets(saveDatasheets,
                                  datasheetName),
                     csv_append=FOREST_SUFFIX + "_Fire")
 
+# Harvest - Forest
+scenarioName = "CBM Crosswalk - Spatial Unit and Species Type - Harvest - Forest"
+if saveDatasheets:
+    myScenario = myProject.scenarios(name = scenarioName)
+
+datasheetName = "stsimcbmcfs3_CrosswalkSpecies"
+myDatasheet = pd.read_csv(os.path.join(CUSTOM_CARBON_CBM_DATA_DIR, datasheetName + FOREST_SUFFIX + "_Harvest.csv"))
+myDatasheet.CBMOutputFile = CONUS_CARBON_CBM_OUTPUT_DIR + os.sep + myDatasheet.CBMOutputFile
+myDatasheet["StratumID"] = PRIMARY_STRATUM_VALUE
+myDatasheet["SecondaryStratumID"] = SECONDARY_STRATUM_VALUE
+
+finalize_datasheets(saveDatasheets,
+                    exportDatasheets,
+                    myScenario,
+                    datasheetName,
+                    myDatasheet, 
+                    os.path.join(CUSTOM_CARBON_SUB_CBM_SPINUP_DIR,
+                                 datasheetName),
+                    csv_append=FOREST_SUFFIX + "_Harvest")
+
 # CBM Crosswalk - Disturbance--------------------------------
 scenarioName = "CBM Crosswalk - Disturbance"
 if saveDatasheets:
