@@ -1,6 +1,12 @@
 ## a269
 ## Katie Birchard (ApexRMS)
 ## April 2023
+##
+## This script creates a tertiary stratum raster that stores
+## information on what the forest type origin is for each
+## pixel. This raster is used for assigning flow pathways
+## after transition from forest to non-forest state class in the
+## final model.
 
 ## Workspace ----
 # Set up environment

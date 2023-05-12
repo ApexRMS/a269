@@ -2,9 +2,9 @@
 ## Katie Birchard (ApexRMS)
 ## April 2023
 ##
-## This script creates definition datasheets for a269 Wetlands Carbon stsim-sf model
+## This script creates definition datasheets for a269 Wetlands Carbon cbmcfs3 spinup model
 ## Definitions datasheets are exported and saved as CSV files
-## Option to save definitions to stsim-sf library (used to check for correct datasheet format)
+## Option to save definitions to cbmcfs3 library (used to check for correct datasheet format)
 ## Note that some definitions files are loaded in from CSV files.
 
 ## Workspace ----
@@ -59,7 +59,7 @@ modelsToInclude = [TreeCoverLabel]
 ## ST-Sim Terminology ---- (updated)
 datasheetName = "stsim_Terminology"
 myDatasheet = pd.DataFrame({"AmountLabel": ["Area"],
-                            "AmountUnits": ["Hectares"],
+                            "AmountUnits": [AREA_UNITS],
                             "StateLabelX": [STATE_LABEL_X],
                             "StateLabelY": [STATE_LABEL_Y],
                             "PrimaryStratumLabel": [PRIMARY_STRATUM],

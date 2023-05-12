@@ -2,7 +2,8 @@
 ## Katie Birchard (ApexRMS)
 ## April 2023
 ##
-## This script creates CBM-CFS3 datasheets and saves them as .csvs
+## This script creates ST-Sim datasheets for the CBM-CFS3 Spinup 
+## and saves them as .csvs
 ## Option to save datasheets directly to library
 ## Assumes that 1-load-definitions.py script is run first (to generate project 
 ## datasheets)
@@ -54,12 +55,6 @@ if saveDatasheets:
       
     # Assumes there is only one default project per library
     myProject = myLibrary.projects(name = "Definitions")
-
-# Set local variables
-TreeCoverLabel = "Forest"
-WetlandLabel = "Wetland"
-
-modelsToInclude = [TreeCoverLabel, WetlandLabel]
 
 # Set myScenario as None - reset if saveDatasheets is True
 myScenario = None

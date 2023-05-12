@@ -1,6 +1,10 @@
 ## a269
 ## Katie Birchard (ApexRMS)
-## April 2023
+## May 2023
+##
+## This script creates charts and maps displaying results
+## of adding carbon stocks and flows.
+## Assumes you have run the preceding scripts in order.
 
 ## Workspace ----
 # Set up environment
@@ -35,12 +39,10 @@ my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FIL
 
 my_project = my_library.projects(name = "Definitions")
 
-# Run single cell scenarios
-for scn in SINGLE_CELL_SCENARIO_NAMES:
-    my_scenario = my_project.scenarios(name = scn)
-    my_scenario.run()
+# Save preconfigured charts
+chart_info = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "corestime_Charts.csv"))
+my_project.save_datasheet("corestime_Charts", chart_info)
 
-# Run spatial scenarios
-for scn in SPATIAL_SCENARIO_NAMES:
-    my_scenario = my_project.scenarios(name = scn)
-    my_scenario.run()
+# Save preconfigured maps
+map_info = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "corestime_Maps.csv"))
+my_project.save_datasheet("corestime_Maps", map_info)

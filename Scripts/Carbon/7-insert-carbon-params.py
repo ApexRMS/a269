@@ -1,6 +1,9 @@
 ## a269
 ## Katie Birchard (ApexRMS)
 ## April 2023
+##
+## This scripts modifies existing datasheets and creates new datasheets
+## in the ECCC library to add carbon stocks and flows to the model.
 
 #%%
 ## Workspace ----
@@ -46,9 +49,6 @@ cbm_to_nestweb_crosswalk = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "nes
 
 # Local vars
 no_data = -9999
-spatial_scenarios = ["Baseline Ownership with Disturbances: 2016 to 2046, 2MC",
-                     "Aspen Protection with Disturbances: 2016 to 2046, 2MC",
-                     "Military Land Protection with Disturbances: 2016 to 2046, 2MC"]
 
 # Create folder for storing rasters
 create_subscenario_dir("stsimsf_InitialStockSpatial", dir_name=CUSTOM_MERGED_SUBSCENARIOS_DIR)
@@ -140,21 +140,11 @@ fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
 new_dependencies.append(scenario_name)
 
-# Add new scenarios as dependencies to full scenarios - 
-# state attribute values, flow group membership, stock group membership, & flow order
-scenario_name = "Single Cell - No Disturbance"
-my_scenario = my_project.scenarios(name = scenario_name)
-my_scenario.dependencies(new_dependencies)
-
-scenario_name = "Single Cell - Fire"
-my_scenario = my_project.scenarios(name = scenario_name)
-my_scenario.dependencies(new_dependencies)
-
 #%%
 ### Spatial ---
 # Update Initial Stocks Spatial
 # Load all required rasters
-my_scenario = my_project.scenarios(spatial_scenarios[0])
+my_scenario = my_project.scenarios(SPATIAL_SCENARIO_NAMES[0])
 scn_deps = my_scenario.dependencies()
 scn_name = scn_deps[scn_deps.Name.str.contains("Initial Conditions - ")].iloc[0].Name
 ic_spatial_scn = my_project.scenarios(name = scn_name)
@@ -212,11 +202,9 @@ state_class_datasheet = my_project.datasheets("stsim_StateClass", optional=True)
 forest_type_datasheet = my_project.datasheets("stsim_TertiaryStratum", optional=True)
 
 sav_lookup["age"] = sav_lookup["AgeMin"].astype("Int64")
-
 sav_lookup = sav_lookup.merge(forest_type_datasheet[["Name", "ID"]], 
                               left_on="TertiaryStratumID", right_on="Name")
 sav_lookup.rename(columns = {"ID": "forest_type_group"}, inplace=True)
-
 sav_lookup = sav_lookup.merge(state_class_datasheet[["Name", "ID"]], 
                               left_on="StateClassID", right_on="Name")
 sav_lookup.rename(columns = {"ID": "state_class"}, inplace=True)
@@ -230,10 +218,8 @@ with rio.open(tst_fire_path) as src:
 with rio.open(tst_harvest_path) as src:
     tst_harvest = src.read(1)
 
-# tst_fire[tst_fire != -9999] = 1
 tst_fire = tst_fire.astype(float)
 tst_fire[tst_fire == -9999] = np.NaN
-# tst_harvest[tst_harvest != -9999] = 1
 tst_harvest = tst_harvest.astype(float)
 tst_harvest[tst_harvest == -9999] = np.NaN
 cell_info["tst_fire"] = tst_fire.reshape(raster_length, -1).squeeze()
@@ -291,14 +277,11 @@ for row in initial_stocks.itertuples():
         initial_stock_data[origin] = initial_stock_data[origin] * initial_stock_data[f"tst_{origin}"]
 
     initial_stock_data["Value"] = initial_stock_data["fire"] + initial_stock_data["harvest"]
-
-    # TODO: check below
     initial_stock_data["Value"] = np.where(initial_stock_data["Value"] == 0, -9999, initial_stock_data["Value"])
     initial_stock_data["Value"] = np.where(initial_stock_data["Value"].isnull(), -9999, initial_stock_data["Value"])
-
     raster_data = np.array(initial_stock_data.Value).reshape(1, raster_dims[1], -1)
-
     filepath = os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, "stsimsf_InitialStockSpatial", f"{stock_id_clean}.tif")
+
     with rio.open(filepath, 'w', **meta) as dst:
         dst.crs = crs
         dst.write(raster_data)
@@ -379,7 +362,7 @@ my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 # Append to State Attribute Values - also need to add this scenario as a dependency and 
-scenario_name = "State Attribute Values - Carbon Stocks & Flows [Origin Fire]"
+scenario_name = "State Attribute Values - Carbon Stocks & Flows"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsim_StateAttributeValue"
 my_datasheet = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name,
@@ -405,3 +388,13 @@ fid = str(folder_df[folder_df.Name.str.contains("State Attribute Values")].iloc[
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
 new_dependencies.append(scenario_name)
 # %%
+
+# Add all new datasheets as dependencies to existing scenarios
+# state attribute values, flow group membership, stock group membership, & flow order
+for scn in SINGLE_CELL_SCENARIO_NAMES:
+    my_scenario = my_project.scenarios(name = scn)
+    my_scenario.dependencies(new_dependencies)
+
+for scn in SPATIAL_SCENARIO_NAMES:
+    my_scenario = my_project.scenarios(name = scn)
+    my_scenario.dependencies(new_dependencies)
