@@ -2,7 +2,8 @@
 ## Katie Birchard (ApexRMS)
 ## April 2023
 ##
-## This script creates CBM-CFS3 datasheets and saves them as .csvs
+## This script creates ST-Sim SF datasheets for the CBM-CFS3 Spinup 
+## and saves them as .csvs
 ## Option to save datasheets directly to library
 ## Assumes that 1-load-definitions.py script is run first (to generate project 
 ## datasheets)

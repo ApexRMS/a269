@@ -83,7 +83,7 @@ def sav_unit_converter(data, src_units="t/ha", dest_units="t/km2"):
 
 # Functions for all scripts -----------------------------------------------------
 
-def export_datasheets(datasheetName, datasheet, folder=CONUS_DEFINITIONS_DIR,
+def export_datasheets(datasheetName, datasheet, folder=CUSTOM_DEFINITIONS_DIR,
                       csv_append = ""):
     
     if not os.path.exists(folder):
@@ -93,7 +93,7 @@ def export_datasheets(datasheetName, datasheet, folder=CONUS_DEFINITIONS_DIR,
     datasheet.to_csv(filepath, index = False, float_format="%.10f")
 
 def finalize_datasheets(save, export, ssimObject, datasheetName, datasheet, 
-                        folder=CONUS_DEFINITIONS_DIR, csv_append = ""):
+                        folder=CUSTOM_DEFINITIONS_DIR, csv_append = ""):
     """
     Finalize datasheet by writing to library and/or exporting to csv.
     
@@ -552,7 +552,7 @@ def generate_transition_types_by_groups(stateClasses):
 
 # Functions for subscenarios scripts --------------------------------------
 
-def create_subscenario_dir(folder_name, dir_name=CONUS_CARBON_SUBSCENARIOS_DIR):
+def create_subscenario_dir(folder_name, dir_name=CUSTOM_CARBON_SUBSCENARIOS_DIR):
   """
   Create a subscenario folder in the current directory
 
@@ -585,7 +585,7 @@ def impute_forest_type_groups(my_datasheet, tertiary_stratum_datasheet):
                             'StateClassID', 'AgeMin', 'AgeMax']).sum().reset_index()
 
 def create_initial_conditions_data(stateClasses, stateClassToForestDict, 
-                                   output_folder=CONUS_CARBON_SUBSCENARIOS_DIR):
+                                   output_folder=CUSTOM_CARBON_SUBSCENARIOS_DIR):
 
   init_cond_num = 0
   init_cond_crosswalk = {"init_cond_num": [],
@@ -626,7 +626,7 @@ def create_initial_conditions_data(stateClasses, stateClassToForestDict,
 def generate_state_class_initial_conditions(init_cond_crosswalk, session,
                                             library, project,
                                             subscenario_folder_id=None,
-                                            output_folder=CONUS_CARBON_SUBSCENARIOS_DIR):
+                                            output_folder=CUSTOM_CARBON_SUBSCENARIOS_DIR):
   for i in range(len(init_cond_crosswalk)):
 
     state_class = init_cond_crosswalk.loc[i, "init_cond_state_class"]
@@ -1195,52 +1195,3 @@ def save_spinup_flow_results(data, origin, ds_names, csv_suffix,
           data[i] = data[i][data[i].TransitionGroupID.isin(transition_groups)]
 
       data[i].to_csv(filepath,index=False)
-
-# Legacy functions below -------------------------------------------------------
-
-# Compute transition matrix
-# def computeTransitionMatrix(source, destination, zones, outputDir):
-#   options(scipen=999) # To suppress scientific notation (GRASS does not recognize scientific notation)
-  
-#   # Get maximum values
-#   # Destination
-#   execGRASS('r.stats', input=destination, output=os.path.join(outputDir, 'Tabular', 'DestinationIDs.csv'),
-#              flags=c('n', 'overwrite'))
-#   maxDestination = pd.read_csv(os.path.join(
-#     outputDir, 'Tabular', 'DestinationIDs.csv'), header=None).V1.max()
-
-#   maxDestination <- floor(log10(maxDestination)) + 1 # Get number of digits
-#   unlink(file.path(outputDir, 'Tabular', 'DestinationIDs.csv'))
-  
-#   # Zones
-#   execGRASS('r.stats', input=zones, output=file.path(outputDir, 'Tabular', 'ZoneIDs.csv'), flags=c('n', 'overwrite'))
-#   maxZone <- read.csv(file.path(outputDir, 'Tabular', 'ZoneIDs.csv'), header=F) %>%
-#     pull(V1) %>%
-#     max()
-#   maxZone <- floor(log10(maxZone)) + 1 # Get number of digits
-#   unlink(file.path(outputDir, 'Tabular', 'ZoneIDs.csv'))
-  
-#   # Overlay rasters
-#   execGRASS('r.mapcalc', expression=paste('transition = ', 10^maxDestination * 10^maxZone, '*', source, '+', 10^maxZone, '*', destination, '+', zones), flags='overwrite')
-  
-#   # Get number of cells per category
-#   execGRASS('r.stats', input='transition', output=file.path(outputDir, 'Tabular', 'Transition.csv'), separator=',', c('a', 'c', 'overwrite'))
-  
-#   # Format output
-#   transitionMatrix <- read.csv(file.path(outputDir, 'Tabular', 'Transition.csv'), header=F) %>%
-#     rename(cat = V1, Area = V2, NCells = V3) %>%
-#     filter(!cat == "*") %>%
-#     mutate(Zone = substr(cat, start=nchar(cat)-(maxZone-1), stop=nchar(cat)),
-#            Source = substr(cat, start=1, stop=nchar(cat)-maxZone-maxDestination),
-#            Destination = substr(cat, start=nchar(cat)-maxZone-(maxDestination-1), stop=nchar(cat)-maxZone)) %>%
-#     mutate(Zone = as.integer(Zone),
-#            Source = as.integer(Source),
-#            Destination = as.integer(Destination)) %>%
-#     select(c(Zone, Source, Destination, NCells, Area))
-  
-#   # Remove intermediate products
-#   execGRASS('g.remove', type='raster', name='transition', 'f')
-#   unlink(file.path(outputDir, 'Tabular', 'Transition.csv'))
-  
-#   # Return matrix
-#   return transitionMatrix

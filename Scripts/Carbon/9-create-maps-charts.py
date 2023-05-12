@@ -41,6 +41,7 @@ my_project = my_library.projects(name = "Definitions")
 
 # Save preconfigured charts
 chart_info = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "corestime_Charts.csv"))
+chart_info["Iteration"] = chart_info["Iteration"].astype("Int64")
 my_project.save_datasheet("corestime_Charts", chart_info)
 
 # Save preconfigured maps

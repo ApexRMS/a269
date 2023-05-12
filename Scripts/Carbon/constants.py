@@ -41,7 +41,6 @@ CUSTOM_CARBON_DATASHEET_DIR = os.path.join(CUSTOM_CARBON_DATA_DIR, "Datasheets")
 CONUS_CARBON_CBM_OUTPUT_DIR = os.path.join(CUSTOM_CARBON_DATA_DIR, "CBM Output Files")
 
 # Intermediates
-CONUS_CARBON_INTERMEDIATES_DIR = os.path.join(INTERMEDIATES_DIR, "CONUS", "Carbon")         
 CUSTOM_INTERMEDIATES_DIR = os.path.join(INTERMEDIATES_DIR, CUSTOM_FOLDER_NAME)
 
 # Model Inputs
@@ -89,6 +88,9 @@ STATE_CLASS_BARREN = "Barren:All"
 STATE_CLASS_DEVELOPED = "Developed:All"
 STATE_CLASS_WATER = "Water:All"
 STATE_CLASS_AGRICULTURE = "Cropland:All"
+STATE_CLASS_SHORE = "Unconsolidated Shore:All"
+STATE_CLASS_WET_FOREST_EST = "Wetland:Estuarine Forested"
+STATE_CLASS_WET_HERB_EST = "Wetland:Estuarine Emergent"
 
 # Added for a269
 STATE_CLASS_FOREST_ASPEN = "Forest:Aspen"
@@ -127,6 +129,13 @@ CBM_FOREST_FIRE_TRANSITION = "Fire: High Severity"
 FOREST_CLEARCUT_TRANSITION = "Disturbance: Clearcut"
 FOREST_FIRE_TRANSITION = "Disturbance: Fire"
 TRANSITIONS_TO_INCLUDE = [FOREST_CLEARCUT_TRANSITION, FOREST_FIRE_TRANSITION]
+
+# Primary stratum ----
+PRIMARY_STRATUM_NAME_FIELD = None
+PRIMARY_STRATUM_IDS = None
+
+# Tertiary Stratum ----
+TERTIARY_STRATUM_NO_DATA_VALUE = 55537
 
 # State Attribute Values ----
 NET_GROWTH_SA = "NPP"
