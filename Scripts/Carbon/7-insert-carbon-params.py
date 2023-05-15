@@ -296,6 +296,14 @@ my_scenario.save_datasheet("stsimsf_InitialStockSpatial", initial_stocks_spatial
 
 ### Modifiy Scenarios ----
 ### Single Cell ---
+# Update initial conditions (non-spatial) with tertiary stratum
+scenario_name = "Initial Conditions Non-Spatial"
+my_scenario = my_project.scenarios(name = scenario_name)
+datasheet_name = "stsim_InitialConditionsNonSpatialDistribution"
+my_datasheet = my_scenario.datasheets(name = datasheet_name)
+my_datasheet.TertiaryStratumID = "Origin " + my_datasheet.StateClassID
+my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
+
 ## From CBM
 # Append to Flow Pathways
 scenario_name = "Flow Pathways"
