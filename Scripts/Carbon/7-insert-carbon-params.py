@@ -54,8 +54,29 @@ no_data = -9999
 create_subscenario_dir("stsimsf_InitialStockSpatial", dir_name=CUSTOM_MERGED_SUBSCENARIOS_DIR)
 
 # Create empty list to store new scenario dependencies
-new_dependencies = []
+base_dependencies = []
 
+#%%
+### Create Additional Scenario ----
+# Create a new single cell scenario for harvest disturbance - update transition multipliers
+# Copy from the single cell - fire scenario
+fire_scenario = my_project.scenarios(name = "Single Cell - Fire")
+harvest_scenario = fire_scenario.copy(name = "Single Cell - Harvest")
+
+#%%
+harvest_deps = harvest_scenario.dependencies()
+tm_scn_name = harvest_deps[harvest_deps.Name.str.contains("Transition Multipliers")].Name.item()
+tm_scn = my_project.scenarios(name = tm_scn_name)
+tm_datasheet = tm_scn.datasheets("stsim_TransitionMultiplierValue")
+tm_datasheet.TransitionGroupID = np.where(tm_datasheet.Timestep != 0, 
+                                          "Disturbance: Clearcut [Type]",
+                                          tm_datasheet.TransitionGroupID)
+new_tm_scn_name = tm_scn_name.replace("Fire", "Harvest")
+new_tm_scn = my_project.scenarios(name = new_tm_scn_name)
+new_tm_scn.save_datasheet("stsim_TransitionMultiplierValue", tm_datasheet)
+harvest_scenario.dependencies(tm_scn_name, remove=True)
+harvest_scenario.dependencies(new_tm_scn_name)
+#%%
 ### Modify Definitions ----
 # Add Attribute Group
 my_datasheet = my_project.datasheets(name = "stsim_AttributeGroup")
@@ -110,7 +131,7 @@ my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 # Add scenario to stock flow folder
 fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
-new_dependencies.append(scenario_name)
+base_dependencies.append(scenario_name)
 
 # Add Flow Group Membership
 scenario_name = "Flow Group Membership"
@@ -122,7 +143,7 @@ my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 # Add scenario to stock flow folder
 fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
-new_dependencies.append(scenario_name)
+base_dependencies.append(scenario_name)
 
 # Add Flow Order
 scenario_name = "Flow Order"
@@ -138,8 +159,7 @@ my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 # Add scenario to stock flow folder
 fid = str(folder_df[folder_df.Name.str.contains("Stocks & Flows")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
-new_dependencies.append(scenario_name)
-
+base_dependencies.append(scenario_name)
 #%%
 ### Spatial ---
 # Update Initial Stocks Spatial
@@ -333,30 +353,33 @@ my_datasheet.replace(CBM_FOREST_FIRE_TRANSITION + " [Type]", FOREST_FIRE_TRANSIT
 my_datasheet.replace(CBM_FOREST_CLEARCUT_TRANSITION + " [Type]", FOREST_CLEARCUT_TRANSITION + " [Type]", inplace=True)
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
+#%%
 # Append to Flow Multipliers
 scenario_name = "Flow Multipliers"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsimsf_FlowMultiplier"
 my_datasheet = my_scenario.datasheets(name = datasheet_name)
-new_values = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name,
+
+#%%
+new_fire_values = pd.read_csv(os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, datasheet_name,
                                         datasheet_name + "_fire_cbm_output.csv"))
 
 # Add tertiary stratum to forest flow multipliers
 tertiary_stratum = my_project.datasheets("stsim_TertiaryStratum")
-new_values.TertiaryStratumID = "Origin " + new_values.StateClassID
+new_fire_values.TertiaryStratumID = "Origin " + new_fire_values.StateClassID
 
 for primary_stratum in cbm_to_nestweb_crosswalk["BEC Variant"].dropna().unique():
     state_class = cbm_to_nestweb_crosswalk[cbm_to_nestweb_crosswalk["BEC Variant"] == primary_stratum]["CBM Forest State Class"].item()
     state_class_nw = cbm_to_nestweb_crosswalk[0:4][cbm_to_nestweb_crosswalk[0:4][
         "CBM Forest State Class"] == state_class]["Nestweb Forest State Class"].item()
     
-    new_values.loc[new_values["StratumID"] == primary_stratum, "TertiaryStratumID"] = "Origin " + state_class_nw
+    new_fire_values.loc[new_fire_values["StratumID"] == primary_stratum, "TertiaryStratumID"] = "Origin " + state_class_nw
 
 # Add cropland/developed flow multipliers for when transitioning from forest
 forest_origins = cbm_to_nestweb_crosswalk[0:4]["Nestweb Forest State Class"].unique()
-cropland_values = new_values[new_values.StateClassID.isin(forest_origins)]
+cropland_values = new_fire_values[new_fire_values.StateClassID.isin(forest_origins)]
 cropland_values["StateClassID"] = STATE_CLASS_AGRICULTURE
-developed_values = new_values[new_values.StateClassID.isin(forest_origins)]
+developed_values = new_fire_values[new_fire_values.StateClassID.isin(forest_origins)]
 developed_values["StateClassID"] = STATE_CLASS_DEVELOPED
 
 # Add grassland multipliers
@@ -364,12 +387,14 @@ grass_values = pd.read_csv(os.path.join(CUSTOM_CARBON_DATASHEET_DIR, datasheet_n
 grass_values = grass_values[grass_values["StateClassID"] == STATE_CLASS_GRASS]
 grass_values["StratumID"] = np.NaN
 
-my_datasheet = pd.concat([my_datasheet, new_values, cropland_values, developed_values, grass_values], ignore_index = True)
-my_datasheet["AgeMin"] = my_datasheet.AgeMin.astype("Int64")
-my_datasheet["AgeMax"] = my_datasheet.AgeMax.astype("Int64")
-my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
+#%%
+fire_flow_multipliers = pd.concat([my_datasheet, new_fire_values, cropland_values, developed_values, grass_values], ignore_index = True)
+fire_flow_multipliers["AgeMin"] = fire_flow_multipliers.AgeMin.astype("Int64")
+fire_flow_multipliers["AgeMax"] = fire_flow_multipliers.AgeMax.astype("Int64")
+my_scenario.save_datasheet(name = datasheet_name, data = fire_flow_multipliers)
 
-# Append to State Attribute Values - also need to add this scenario as a dependency and 
+#%%
+# Append to State Attribute Values from fire origin - also need to add this scenario as a dependency 
 scenario_name = "State Attribute Values - Carbon Stocks & Flows"
 my_scenario = my_project.scenarios(name = scenario_name)
 datasheet_name = "stsim_StateAttributeValue"
@@ -394,15 +419,15 @@ my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 # Add scenario to state attribute values folder
 fid = str(folder_df[folder_df.Name.str.contains("State Attribute Values")].iloc[0].ID)
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
-new_dependencies.append(scenario_name)
+base_dependencies.append(scenario_name)
 # %%
 
 # Add all new datasheets as dependencies to existing scenarios
 # state attribute values, flow group membership, stock group membership, & flow order
 for scn in SINGLE_CELL_SCENARIO_NAMES:
     my_scenario = my_project.scenarios(name = scn)
-    my_scenario.dependencies(new_dependencies)
+    my_scenario.dependencies(base_dependencies)
 
 for scn in SPATIAL_SCENARIO_NAMES:
     my_scenario = my_project.scenarios(name = scn)
-    my_scenario.dependencies(new_dependencies)
+    my_scenario.dependencies(base_dependencies)
