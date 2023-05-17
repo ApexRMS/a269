@@ -74,7 +74,7 @@ tm_datasheet.TransitionGroupID = np.where(tm_datasheet.Timestep != 0,
 new_tm_scn_name = tm_scn_name.replace("Fire", "Harvest")
 new_tm_scn = my_project.scenarios(name = new_tm_scn_name)
 new_tm_scn.save_datasheet("stsim_TransitionMultiplierValue", tm_datasheet)
-harvest_scenario.dependencies(tm_scn_name, remove=True)
+harvest_scenario.dependencies(tm_scn_name, remove=True, force=True)
 harvest_scenario.dependencies(new_tm_scn_name)
 #%%
 ### Modify Definitions ----
