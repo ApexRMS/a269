@@ -223,7 +223,7 @@ forest_type_datasheet = my_project.datasheets("stsim_TertiaryStratum", optional=
 
 sav_lookup["age"] = sav_lookup["AgeMin"].astype("Int64")
 sav_lookup = sav_lookup.merge(forest_type_datasheet[["Name", "ID"]], 
-                              left_on="TertiaryStratumID", right_on="Name")
+                              left_on="TertiaryStratumID", right_on="Name", how="left")
 sav_lookup.rename(columns = {"ID": "forest_type_group"}, inplace=True)
 sav_lookup = sav_lookup.merge(state_class_datasheet[["Name", "ID"]], 
                               left_on="StateClassID", right_on="Name")
