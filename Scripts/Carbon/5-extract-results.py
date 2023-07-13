@@ -149,5 +149,8 @@ for origin in ["_fire", "_harvest"]:
                                     "Multiplier": [1] * len(flow_groups)})
     data[2] = pd.concat([data[2], net_growth_flows])
 
+    # Remove doubled flow pathways
+    data[2] = data[2].drop_duplicates()
+
     # data = convert_output_for_forecast(data)
     save_spinup_flow_results(data, origin, ds_names, cbm_output_suffix, TransitionGroupsToInclude)
