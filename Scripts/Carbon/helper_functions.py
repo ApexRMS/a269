@@ -9,6 +9,7 @@ import re
 import io
 import subprocess
 from dask.distributed import Client, Lock
+import rioxarray as rxr
 import glob
 from win32api import GetFileVersionInfo, LOWORD, HIWORD
 from constants import *
@@ -45,7 +46,6 @@ if len(gdal_installations) > 1:
                 os.environ['PATH'] = os.pathsep.join(
                     [p for p in os.environ['PATH'].split(os.pathsep) if folder not in p])
                 
-import rioxarray as rxr
 
 # General functions ------------------------------------------------------------
 
