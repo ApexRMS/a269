@@ -289,12 +289,12 @@ transitionMultipliers <- lulcChangeProportion %>%
          StateClassID = SourceStateClass,
          TransitionGroupID = DestStateClass) %>% 
   mutate(TransitionGroupID = case_when(TransitionGroupID == "Cropland:All" ~ "LULC: -> Cropland [Type]",
-                                       TransitionGroupID == "Urban:All" ~ "LULC: -> Urban [Type]"))
+                                       TransitionGroupID == "Urban:All" ~ "LULC: -> Developed [Type]"))
 
 # Add rows for all other Forest state classes
 forestMultipliers <- expand.grid(SecondaryStratumID = c("Private", "Protected", "Public"),
                                  StateClassID = c("Forest:Aspen", "Forest:Pine", "Forest:Spruce", "Forest:Fir"),
-                                 TransitionGroupID = c("LULC: -> Cropland [Type]", "LULC: -> Urban [Type]")) %>% 
+                                 TransitionGroupID = c("LULC: -> Cropland [Type]", "LULC: -> Developed [Type]")) %>% 
   left_join(transitionMultipliers %>% filter(StateClassID == "Forest:Unknown"), 
             by = c("SecondaryStratumID", "TransitionGroupID")) %>% 
   rename(StateClassID = StateClassID.x) %>% 
