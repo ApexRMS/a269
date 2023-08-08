@@ -20,19 +20,20 @@ spatialDataDir <- file.path("Data", "Spatial")
 tabularModelInputsDir <- file.path("Model-Inputs", "Tabular")
 spatialModelInputsDir <- file.path("Model-Inputs", "Spatial")
 libraryDir <- "Libraries"
+habitatModelDir <- "Habitat Models"
 
 # Connect R to SyncroSim
 mySession <- session()
 
 ## Create Library ----
-myLibrary <- ssimLibrary(name = file.path(libraryDir, "ECCC cavity nests model"),
-                         package = "stsim",
-                         session = mySession,
-                         addon = "stsimsf",
-                         overwrite = TRUE)
+# myLibrary <- ssimLibrary(name = file.path(libraryDir, "Working", "test ECCC cavity nests model"),
+#                          package = "stsim",
+#                          session = mySession,
+#                          addon = c("stsimsf", "stsimNestweb"),
+#                          overwrite = TRUE)
 
 # Connect to existing library
-# myLibrary <- ssimLibrary(name = file.path(libraryDir, "ECCC cavity nests model"))
+myLibrary <- ssimLibrary(name = file.path(libraryDir, "Working", "ECCC cavity nests model"))
 
 # Open the default project
 myProject <- rsyncrosim::project(ssimObject = myLibrary, project = "Definitions")
@@ -225,7 +226,8 @@ saveDatasheet(ssimObject = myProject,
 #### Distributions ----
 distributions <- datasheet(
   ssimObject = myProject,
-  name = "corestime_DistributionType") %>% 
+  name = "corestime_DistributionType",
+  empty = TRUE) %>% 
   addRow(value = data.frame(Name = c("Historic Fire",
                                      "Historic Logging",
                                      "Historic LULC: -> Cropland",
@@ -273,6 +275,31 @@ saveDatasheet(ssimObject = myProject,
               data = flowType,
               name = "stsimsf_FlowType")
 
+### Nestweb ----
+#### Sites ----
+sites <- datasheet(ssimObject = myProject,
+          name = "stsimNestweb_SiteType") %>% 
+  addRow(value = read_csv(file.path(tabularModelInputsDir, "Sites.csv")) %>% 
+           as.data.frame())
+
+# Save datasheet to library
+saveDatasheet(ssimObject = myProject, 
+              data = sites,
+              name = "stsimNestweb_SiteType")
+
+#### Species ----
+species <- datasheet(ssimObject = myProject,
+                   name = "stsimNestweb_Species") %>% 
+  addRow(value = data.frame(
+    "Name" = c("Downy woodpecker", "Pileated woodpecker", "Northern flicker",
+               "Red-naped sapsucker", "Hairy woodpecker", "American three-toed woodpecker",
+               "Red-breasted nuthatch")))
+
+# Save datasheet to library
+saveDatasheet(ssimObject = myProject, 
+              data = species,
+              name = "stsimNestweb_Species")
+
 ### Terminology ----
 terminology <- datasheet(ssimObject = myProject,
                          name = "stsim_Terminology",
@@ -296,12 +323,39 @@ rm(primaryStratumValues, primaryStratum, secondaryStratumValues,
 
 ## Scenario-scope Datasheets ----
 ## Create Sub-Scenarios (dependencies) for each scenario-scoped datasheet
+## Create folder structure
+folder(ssimObject = myProject, folder = "Sub Scenarios")
+folder(ssimObject = myProject, folder = "Full Scenarios")
+
+fullScenarioFolders <- c("Single Cell", "Landscape")
+
+subScnearioFolders <- c("01 Run Control", "02 Transition Pathways", 
+                        "03 Initial Conditions", "04 Transition Targets",
+                        "05 Output Options", "06 Distributions",
+                        "07 Transition Multipliers", "08 Transition Size",
+                        "09 Transition Adjacency", "10 State Attribute Values",
+                        "11 Stocks & Flows", "12 Nestweb")
+
+for(fullScenarioFolder in fullScenarioFolders) {
+  folder(ssimObject = myProject, 
+         folder = fullScenarioFolder,
+         parentFolder = "Full Scenarios")
+}
+
+for(subScnearioFolder in subScnearioFolders) {
+  folder(ssimObject = myProject, 
+         folder = subScnearioFolder,
+         parentFolder = "Sub Scenarios")
+}
+
+
 ### Run Control ----
 #### Spatial ----
 # Create run control sub scenario
 runControlSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Run Control Spatial, 2016 to 2046, 1 Iteration")
+  scenario = "Run Control Spatial, 2016 to 2046, 1 Iteration",
+  folder = "01 Run Control")
 
 # Populate datasheet
 runControlDatasheet <- datasheet(
@@ -319,6 +373,8 @@ saveDatasheet(ssimObject = runControlSubScenario,
               data = runControlDatasheet,
               name = "stsim_RunControl")
 
+
+
 # Memory management
 rm(runControlSubScenario, runControlDatasheet)
 
@@ -326,7 +382,8 @@ rm(runControlSubScenario, runControlDatasheet)
 # Create run control sub scenario
 runControlSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Run Control Non-Spatial, 250 yr, 40 it")
+  scenario = "Run Control Non-Spatial, 250 yr, 40 it",
+  folder = "01 Run Control")
 
 # Populate datasheet
 runControlDatasheet <- datasheet(
@@ -371,7 +428,8 @@ probabilisticTransitionValues <- data.frame(
 # Create transition pathway sub scenario
 transitionPathwaySubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Pathways")
+  scenario = "Transition Pathways",
+  folder = "02 Transition Pathways")
 
 # Create deterministic transitions datasheet
 deterministicTransitionsDatasheet <- datasheet(
@@ -415,7 +473,8 @@ initialTstSpatialValues <- list(
 # Create initial conditions sub scenario
 initialTstSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Initial Conditions - TST Spatial")
+  scenario = "Initial Conditions - TST Spatial",
+  folder = "03 Initial Conditions")
 
 # Populate initial conditions datasheet
 initialTstDatasheet <- datasheet(
@@ -443,7 +502,8 @@ initialConditionsSpatialValues <- list(
 # Create initial conditions sub scenario
 initialConditionsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Initial Conditions - Baseline Ownership")
+  scenario = "Initial Conditions - Baseline Ownership",
+  folder = "03 Initial Conditions")
 
 # Populate initial conditions datasheet
 initialConditionsSpatialDatasheet <- datasheet(
@@ -467,7 +527,8 @@ initialConditionsSpatialValues <- list(
 # Create initial conditions sub scenario
 initialConditionsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Initial Conditions - Increased Aspen Protection")
+  scenario = "Initial Conditions - Increased Aspen Protection",
+  folder = "03 Initial Conditions")
 
 # Edit initial conditions datasheet
 initialConditionsSpatialDatasheet <- datasheet(
@@ -492,7 +553,8 @@ initialConditionsSpatialValues <- list(
 # Create initial conditions sub scenario
 initialConditionsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Initial Conditions - Military Training Land Protection")
+  scenario = "Initial Conditions - Military Training Land Protection",
+  folder = "03 Initial Conditions")
 
 # Edit initial conditions datasheet
 initialConditionsSpatialDatasheet <- datasheet(
@@ -524,7 +586,8 @@ initialConditionsNonSpatialDistribution <- data.frame(
 # Create initial conditions sub scenario
 initialConditionsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Initial Conditions Non-Spatial")
+  scenario = "Initial Conditions Non-Spatial",
+  folder = "03 Initial Conditions")
 
 # Populate initial conditions datasheet
 initialConditionsNonSpatialDatasheet <- datasheet(
@@ -565,7 +628,8 @@ transitionTargetValues <- data.frame(
 # Create transition targets sub scenario
 transitionTargetsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Targets - Historic Logging")
+  scenario = "Transition Targets - Historic Logging",
+  folder = "04 Transition Targets")
 
 # Populate transition targets datasheet
 transitionTargetsDatasheet <- datasheet(
@@ -590,7 +654,8 @@ transitionTargetValues <- data.frame(
 # Create transition targets sub scenario
 transitionTargetsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Targets - LULC")
+  scenario = "Transition Targets - LULC",
+  folder = "04 Transition Targets")
 
 # Populate transition targets datasheet
 transitionTargetsDatasheet <- datasheet(
@@ -638,7 +703,8 @@ outputOptionsSpatialValues = data.frame(
 # Create output options sub scenario
 outputOptionsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Output Options")
+  scenario = "Output Options",
+  folder = "05 Output Options")
 
 # Populate datasheets
 outputOptionsDatasheet <- datasheet(
@@ -686,7 +752,8 @@ sfOutputOptionValues <- data.frame(
 # Create output options sub scenario
 outputOptionsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Output Options Non-Spatial")
+  scenario = "Output Options Non-Spatial",
+  folder = "05 Output Options")
 
 # Populate datasheets
 outputOptionsDatasheet <- datasheet(
@@ -715,12 +782,93 @@ rm(outputOptionValues, sfOutputOptionValues, outputOptionsDatasheet,
    outputOptionsSFDatasheet, outputOptionsSubScenario)
 
 ### Advanced ----
+#### Distributions ----
+##### Historic Fire ----
+# Load historic fire distribution values
+distributionValues <- read_csv(
+  file.path(tabularModelInputsDir, "Distribution - Historic Fire.csv")) %>% 
+  rename(DistributionTypeID = Distribution,
+         ValueDistributionRelativeFrequency = `Relative Frequency`) %>% 
+  as.data.frame()
+
+# Create transition size subscenario
+distributionSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Distributions - Historic Fire",
+  folder = "06 Distributions")
+
+# Create transition multiplier datasheet
+distributionDatasheet <- datasheet(
+  ssimObject = distributionSubScenario,
+  name = "stsim_DistributionValue",
+  optional = TRUE) %>% 
+  addRow(distributionValues)
+
+# Save datasheets to library
+saveDatasheet(ssimObject = distributionSubScenario, 
+              data = distributionDatasheet,
+              name = "stsim_DistributionValue")
+
+##### Historic Logging ----
+distributionValues <- read_csv(
+  file.path(tabularModelInputsDir, "Distributions - Historic Logging.csv")) %>% 
+  as.data.frame()
+
+# Create transition size subscenario
+distributionSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Distributions - Historic Logging",
+  folder = "06 Distributions")
+
+# Create transition multiplier datasheet
+loggingDistributionDatasheet <- datasheet(
+  ssimObject = distributionSubScenario,
+  name = "stsim_DistributionValue",
+  optional = TRUE,
+  empty = TRUE) %>% 
+  addRow(distributionValues)
+
+# Save datasheets to library
+saveDatasheet(ssimObject = distributionSubScenario, 
+              data = loggingDistributionDatasheet,
+              name = "stsim_DistributionValue")
+
+##### LULC ----
+distributionValues <- read_csv(
+  file.path(tabularModelInputsDir, "Distributions - LULC.csv")) %>% 
+  mutate(DistributionTypeID = str_replace(DistributionTypeID, "C ", "C: ")) %>% 
+  as.data.frame()
+
+# Create transition size subscenario
+distributionSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Distributions - LULC",
+  folder = "06 Distributions")
+
+# Create transition multiplier datasheet
+distributionDatasheet <- datasheet(
+  ssimObject = distributionSubScenario,
+  name = "stsim_DistributionValue",
+  optional = TRUE,
+  empty = TRUE) %>% 
+  addRow(distributionValues)
+
+# Save datasheets to library
+saveDatasheet(ssimObject = distributionSubScenario, 
+              data = distributionDatasheet,
+              name = "stsim_DistributionValue")
+
+# Memory management
+rm(distributionValues, distributionSubScenario,
+   distributionDatasheet)
+
 #### Transition Multipliers ----
 ##### No Fire ----
 # Create transition multiplier no fire subscenario
 transitionMultiplierSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Multiplier - No Fire")
+  scenario = "Transition Multiplier - No Fire",
+  folder = "07 Transition Multipliers")
 
 # Create transition multiplier datasheet
 transitionMultiplierDatasheet <- datasheet(
@@ -756,7 +904,8 @@ transitionMultiplierValues <- read_csv(
 # Create transition multiplier subscenario
 transitionMultiplierSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Multiplier - Historic Fire")
+  scenario = "Transition Multiplier - Historic Fire",
+  folder = "07 Transition Multipliers")
 
 # Create transition multiplier datasheet
 transitionMultiplierDatasheet <- datasheet(
@@ -785,7 +934,8 @@ transitionMultiplierValues <- read_csv(
 # Create transition multiplier subscenario
 transitionMultiplierSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Multipliers - LULC")
+  scenario = "Transition Multipliers - LULC",
+  folder = "07 Transition Multipliers")
 
 # Create transition multiplier datasheet
 transitionMultiplierDatasheet <- datasheet(
@@ -814,7 +964,8 @@ transitionMultiplierValues <- data.frame(
 # Create transition multiplier subscenario
 transitionMultiplierSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Multipliers Non-Spatial - No Disturbance")
+  scenario = "Transition Multipliers Non-Spatial - No Disturbance",
+  folder = "07 Transition Multipliers")
 
 # Create transition multiplier datasheet
 transitionMultiplierDatasheet <- datasheet(
@@ -843,7 +994,8 @@ transitionMultiplierValues <- data.frame(
 # Create transition multiplier subscenario
 transitionMultiplierSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Multipliers Non-Spatial - Year 100 Fire")
+  scenario = "Transition Multipliers Non-Spatial - Year 100 Fire",
+  folder = "07 Transition Multipliers")
 
 # Create transition multiplier datasheet
 transitionMultiplierDatasheet <- datasheet(
@@ -873,7 +1025,8 @@ transitionSizeValues <- read_csv(
 # Create transition size subscenario
 transitionSizeSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Size - Fire")
+  scenario = "Transition Size - Fire",
+  folder = "08 Transition Size")
 
 # Create transition multiplier datasheet
 transitionSizeDatasheet <- datasheet(
@@ -896,7 +1049,8 @@ transitionSizeValues <- read_csv(
 # Create transition size subscenario
 transitionSizeSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Size - Clearcut")
+  scenario = "Transition Size - Clearcut",
+  folder = "08 Transition Size")
 
 # Create transition multiplier datasheet
 transitionSizeDatasheet <- datasheet(
@@ -929,7 +1083,8 @@ transitionAdjacencyValues <- data.frame(
 # Create transition size subscenario
 transitionAdjacencySubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Transition Adjacency - LULC")
+  scenario = "Transition Adjacency - LULC",
+  folder = "09 Transition Adjacency")
 
 # Create transition multiplier datasheets
 transitionAdjacencySettingsDatasheet <- datasheet(
@@ -992,7 +1147,8 @@ growthRateValues <- read_csv(file.path(tabularDataDir, "state-attribute-values.c
 # Create state attribute value sub scenario
 stateAttributeSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "State Attribute Values - Growth Rate")
+  scenario = "State Attribute Values - Growth Rate",
+  folder = "10 State Attribute Values")
 
 # Create datasheet
 stateAttributeDatasheet <- datasheet(
@@ -1047,7 +1203,8 @@ postReplacementValues <- read_csv(file.path(tabularDataDir, "diameter-post-fire.
 # Create state attribute value sub scenario
 stateAttributeSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "State Attribute Values - Post Replacement Diameter")
+  scenario = "State Attribute Values - Post Replacement Diameter",
+  folder = "10 State Attribute Values")
 
 # Create datasheet
 stateAttributeDatasheet <- datasheet(
@@ -1081,7 +1238,8 @@ stateAttributeValues <- data.frame(
 # Create state attribute value sub scenario
 stateAttributeSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "State Attribute Values Non-Spatial - Inital Aspen Cover")
+  scenario = "State Attribute Values Non-Spatial - Inital Aspen Cover",
+  folder = "10 State Attribute Values")
 
 # Create datasheet
 stateAttributeDatasheet <- datasheet(
@@ -1099,83 +1257,6 @@ saveDatasheet(ssimObject = stateAttributeSubScenario,
 # Memory management
 rm(stateAttributeValues, stateAttributeSubScenario, 
    stateAttributeDatasheet)
-
-#### Distributions ----
-##### Historic Fire ----
-# Load historic fire distribution values
-distributionValues <- read_csv(
-  file.path(tabularModelInputsDir, "Distribution - Historic Fire.csv")) %>% 
-  rename(DistributionTypeID = Distribution,
-         ValueDistributionRelativeFrequency = `Relative Frequency`) %>% 
-  as.data.frame()
-
-# Create transition size subscenario
-distributionSubScenario <- scenario(
-  ssimObject = myProject,
-  scenario = "Distributions - Historic Fire")
-
-# Create transition multiplier datasheet
-distributionDatasheet <- datasheet(
-  ssimObject = distributionSubScenario,
-  name = "stsim_DistributionValue",
-  optional = TRUE) %>% 
-  addRow(distributionValues)
-
-# Save datasheets to library
-saveDatasheet(ssimObject = distributionSubScenario, 
-              data = distributionDatasheet,
-              name = "stsim_DistributionValue")
-
-##### Historic Logging ----
-distributionValues <- read_csv(
-  file.path(tabularModelInputsDir, "Distributions - Historic Logging.csv")) %>% 
-  as.data.frame()
-
-# Create transition size subscenario
-distributionSubScenario <- scenario(
-  ssimObject = myProject,
-  scenario = "Distributions - Historic Logging")
-
-# Create transition multiplier datasheet
-loggingDistributionDatasheet <- datasheet(
-  ssimObject = distributionSubScenario,
-  name = "stsim_DistributionValue",
-  optional = TRUE,
-  empty = TRUE) %>% 
-  addRow(distributionValues)
-
-# Save datasheets to library
-saveDatasheet(ssimObject = distributionSubScenario, 
-              data = loggingDistributionDatasheet,
-              name = "stsim_DistributionValue")
-
-##### LULC ----
-distributionValues <- read_csv(
-  file.path(tabularModelInputsDir, "Distributions - LULC.csv")) %>% 
-  mutate(DistributionTypeID = str_replace(DistributionTypeID, "C ", "C: ")) %>% 
-  as.data.frame()
-
-# Create transition size subscenario
-distributionSubScenario <- scenario(
-  ssimObject = myProject,
-  scenario = "Distributions - LULC")
-
-# Create transition multiplier datasheet
-distributionDatasheet <- datasheet(
-  ssimObject = distributionSubScenario,
-  name = "stsim_DistributionValue",
-  optional = TRUE,
-  empty = TRUE) %>% 
-  addRow(distributionValues)
-
-# Save datasheets to library
-saveDatasheet(ssimObject = distributionSubScenario, 
-              data = distributionDatasheet,
-              name = "stsim_DistributionValue")
-
-# Memory management
-rm(distributionValues, distributionSubScenario,
-   distributionDatasheet, externalVariableValues, externalVariablesDatasheet)
 
 #### External Variables ----
 # Historic Logging Year and Historic LULC 5 Year Period
@@ -1208,9 +1289,10 @@ externalVariableValues <- tibble(
   mutate(DistributionTypeID = DistributionTypeID %>% as.character()) %>% 
   as.data.frame()
 
-
-externalVariablesSubScenario <- scenario(ssimObject = myProject,
-                                         scenario = "External Variables - Logging and LULC")
+externalVariablesSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "External Variables - Logging and LULC",
+  folder = "06 Distributions")
 
 externalVariablesDatasheet <- datasheet(
   ssimObject = externalVariablesSubScenario,
@@ -1251,7 +1333,8 @@ flowPathwayDisturbances <- data.frame(
 # Create flow pathway sub scenario
 flowPathwaysSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Flow Pathways")
+  scenario = "Flow Pathways",
+  folder = "11 Stocks & Flows")
 
 # Populate datasheets
 flowPathwayDiagramDatasheet <- datasheet(
@@ -1303,7 +1386,8 @@ initialStockValues <- data.frame(
 # Create initial stocks sub scenario
 initialStocksSubScenario <- scenario(
   ssimObject = myProject, 
-  scenario = "Initial Stocks Spatial")
+  scenario = "Initial Stocks Spatial",
+  folder = "11 Stocks & Flows")
 
 # Populate datasheet
 initialStocksDatasheet <- datasheet(
@@ -1328,7 +1412,8 @@ initialStockValues <- data.frame(
 # Create initial stocks sub scenario
 initialStocksSubScenario <- scenario(
   ssimObject = myProject, 
-  scenario = "Initial Stocks Non Spatial")
+  scenario = "Initial Stocks Non Spatial",
+  folder = "11 Stocks & Flows")
 
 # Populate datasheet
 initialStocksDatasheet <- datasheet(
@@ -1357,7 +1442,8 @@ sfOutputOptionValues <- data.frame(
 # Create sf output options sub scenario
 sfOutputOptionsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "SF Output Options")
+  scenario = "SF Output Options",
+  folder = "11 Stocks & Flows")
 
 # Populate datasheet
 sfOutputOptionsDatasheet <- datasheet(
@@ -1383,7 +1469,8 @@ stockLimitValues <- data.frame(
 # Create stock limits sub scenario
 stockLimitsSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Stock Limits")
+  scenario = "Stock Limits",
+  folder = "11 Stocks & Flows")
 
 # Populate datasheet
 stockLimitsDatasheet <- datasheet(
@@ -1427,7 +1514,8 @@ postFireAspenValues <- read_csv(file.path(tabularDataDir, "aspen-cover-post-fire
 # Create flow multipliers sub scenario
 flowMultipliersSubScenario <- scenario(
   ssimObject = myProject,
-  scenario = "Flow Multipliers")
+  scenario = "Flow Multipliers",
+  folder = "11 Stocks & Flows")
 
 # Populate datasheet
 stockLimitsDatasheet <- datasheet(
@@ -1448,11 +1536,104 @@ dependency(flowPathwaysSubScenario, "Flow Multipliers")
 rm(flowPathwaysSubScenario, postFireAspenValues, flowMultipliersSubScenario, 
    stockLimitsDatasheet)
 
+### Nestweb ----
+#### Habitat Models ----
+habitatModelSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Habitat Models",
+  folder = "12 Nestweb")
+
+# Populate datasheet
+habitatModelDatasheet <- datasheet(
+  ssimObject = habitatModelSubScenario,
+  name = "stsimNestweb_HabitatModel",
+  optional = TRUE) %>% 
+  addRow(value = data.frame(
+    "Name" = c("American three-toed woodpecker", "Downy woodpecker", "Hairy woodpecker",
+               "Northern flicker", "Pileated woodpecker", "Red-breasted nuthatch",
+               "Red-naped sapsucker"),
+    "ModelFileName" = list.files(path = file.path(getwd(), habitatModelDir),
+                                 pattern = "*.Rds",
+                                 full.names = TRUE)
+  ))
+
+# Save datasheet to library
+saveDatasheet(ssimObject = habitatModelSubScenario, 
+              data = habitatModelDatasheet,
+              name = "stsimNestweb_HabitatModel")
+
+#### Site Raster ----
+SitesSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Sites",
+  folder = "12 Nestweb")
+
+# Populate datasheet
+sitesRasterDatasheet <- datasheet(
+  ssimObject = SitesSubScenario,
+  name = "stsimNestweb_SiteValue",
+  optional = TRUE) %>% 
+  addRow(value = data.frame(
+    "FileName" = file.path(getwd(), spatialModelInputsDir, "site.tif")))
+
+# Save datasheet to library
+saveDatasheet(ssimObject = SitesSubScenario, 
+              data = sitesRasterDatasheet,
+              name = "stsimNestweb_SiteValue")
+
+#### Invalid Habitat ----
+invalidHabitatSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Invalid Habitat",
+  folder = "12 Nestweb")
+
+# Populate datasheet
+habitatModelDatasheet <- datasheet(
+  ssimObject = invalidHabitatSubScenario,
+  name = "stsimNestweb_InvalidHabitat",
+  optional = TRUE,
+  empty = TRUE) %>% 
+  # zzz: Error in addRow(., value = test) : Invalid values for StratumID : NA
+  addRow(value = read_csv(file.path(tabularModelInputsDir, "Invalid Habitat.csv")) %>% 
+           as.data.frame())
+
+# Save datasheet to library
+saveDatasheet(ssimObject = invalidHabitatSubScenario, 
+              data = habitatModelDatasheet,
+              name = "stsimNestweb_InvalidHabitat")
+
+#### Output Options ----
+nestwebOutputOptionsSubScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Nestweb Output Options",
+  folder = "12 Nestweb")
+
+# Populate datasheet
+habitatModelDatasheet <- datasheet(
+  ssimObject = nestwebOutputOptionsSubScenario,
+  name = "stsimNestweb_OutputOptions",
+  optional = TRUE) %>% 
+  addRow(value = data.frame(
+    "SummaryOutputHA" = TRUE,
+    "SummaryOutputHATimesteps" = 10,
+    "RasterOutputHA" = TRUE,
+    "RasterOutputHATimesteps" = 10,
+    "RasterOutputHAC" = TRUE,
+    "RasterOutputHAAverage" = TRUE,
+    "RasterOutputHACAverage" = TRUE))
+
+# Save datasheet to library
+saveDatasheet(ssimObject = nestwebOutputOptionsSubScenario, 
+              data = habitatModelDatasheet,
+              name = "stsimNestweb_OutputOptions")
+
 ## Full Scenarios ----
 ### Single Cell ----
 #### No Disturbance ----
-noDisturbanceScenario <- scenario(ssimObject = myProject,
-                                  scenario = "Single Cell - No Disturbance")
+noDisturbanceScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Single Cell - No Disturbance",
+  folder = "Single Cell")
 
 # Merge dependencies for the baseline Scenario
 mergeDependencies(noDisturbanceScenario) <- TRUE
@@ -1473,7 +1654,8 @@ dependency(noDisturbanceScenario, "Output Options Non-Spatial")
 #### Fire ----
 fireScenario <- scenario(ssimObject = myProject,
                          scenario = "Single Cell - Fire",
-                         sourceScenario = "Single Cell - No Disturbance")
+                         sourceScenario = "Single Cell - No Disturbance",
+                         folder = "Single Cell")
 
 # Replace transition multiplier
 dependency(fireScenario, "Transition Multipliers Non-Spatial - No Disturbance", 
@@ -1482,14 +1664,32 @@ dependency(fireScenario, "Transition Multipliers Non-Spatial - Year 100 Fire")
 
 ### Landscape ----
 #### Baseline Ownership with Disturbances ----
-baselineScenario <- scenario(ssimObject = myProject,
-                             scenario = "Baseline Ownership with Disturbances: 2016 to 2046, 1MC")
+baselineScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Baseline Ownership with Disturbances: 2016 to 2046, 1MC",
+  folder = "Landscape")
 
 # Merge dependencies for the baseline Scenario
 mergeDependencies(baselineScenario) <- TRUE
 
+# Define pipeline
+pipelineDatasheet <- datasheet(ssimObject = baselineScenario,
+          name = "core_Pipeline") %>% 
+  addRow(value = data.frame(
+    "StageNameID" = c("ST-Sim", "Model Habitat", "Summarize Habitat"),
+    "RunOrder" = c(1,2,3)
+  ))
+
+saveDatasheet(ssimObject = baselineScenario, 
+              data = pipelineDatasheet,
+              name = "core_Pipeline")
+
 # Add sub-scenarios as dependencies to the full baseline scenario
 # Note: sub-scenarios are added in reverse order so that they appear in order in the UI
+dependency(baselineScenario, "Nestweb Output Options")
+dependency(baselineScenario, "Invalid Habitat")
+dependency(baselineScenario, "Sites")
+dependency(baselineScenario, "Habitat Models")
 dependency(baselineScenario, "Stock Limits")
 dependency(baselineScenario, "SF Output Options")
 dependency(baselineScenario, "Initial Stocks Spatial")
@@ -1515,9 +1715,11 @@ dependency(baselineScenario, "Run Control Spatial, 2016 to 2046, 1 Iteration")
 
 #### Increased Aspen Protection with Disturbances ----
 # Create a copy of the Baseline - No Fire scenario
-aspenProtectionScenario <- scenario(ssimObject = myProject,
-                                    scenario = "Aspen Protection with Disturbances: 2016 to 2046, 1MC",
-                                    sourceScenario = "Baseline Ownership with Disturbances: 2016 to 2046, 1MC")
+aspenProtectionScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Aspen Protection with Disturbances: 2016 to 2046, 1MC",
+  sourceScenario = "Baseline Ownership with Disturbances: 2016 to 2046, 1MC",
+  folder = "Landscape")
 
 # Replace ownership raster
 dependency(aspenProtectionScenario, "Initial Conditions - Baseline Ownership", remove = TRUE, force = TRUE)
@@ -1525,13 +1727,13 @@ dependency(aspenProtectionScenario, "Initial Conditions - Increased Aspen Protec
 
 #### Increased Protection (Military Training Land): 2016 to 2046, 1MC; Fire, Logging, LULC ----
 # Create a copy of the Baseline - No Fire scenario
-militaryLandProtectionScenario <- scenario(ssimObject = myProject,
-                                           scenario = "Military Land Protection with Disturbances: 2016 to 2046, 1MC",
-                                           sourceScenario = "Baseline Ownership with Disturbances: 2016 to 2046, 1MC")
+militaryLandProtectionScenario <- scenario(
+  ssimObject = myProject,
+  scenario = "Military Land Protection with Disturbances: 2016 to 2046, 1MC",
+  sourceScenario = "Baseline Ownership with Disturbances: 2016 to 2046, 1MC",
+  folder = "Landscape")
 
 # Remove Initial Conditions - Baseline Ownership datasheet
 dependency(militaryLandProtectionScenario, "Initial Conditions - Baseline Ownership", remove = TRUE, force = TRUE)
 # Add logging and LULC transition datasheets
 dependency(militaryLandProtectionScenario, "Initial Conditions - Military Training Land Protection")
-
-
