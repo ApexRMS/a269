@@ -33,12 +33,13 @@ import pandas as pd
 import rioxarray
 import rasterio as rio
 
+#%%
 ### Load Library ----
 my_session = ps.Session()
 my_session.add_packages("stsim")
 my_session.add_packages("stsimsf")
 
-my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FILE_NAME))
+my_library = ps.library(name = os.path.join(LIBRARY_DIR, "Working", LIBRARY_CARBON_LULC_FILE_NAME))
 
 my_project = my_library.projects(name = "Definitions")
 
@@ -164,7 +165,7 @@ base_dependencies.append(scenario_name)
 ### Spatial ---
 # Update Initial Stocks Spatial
 # Load all required rasters
-my_scenario = my_project.scenarios(SPATIAL_SCENARIO_NAMES[0])
+my_scenario = my_project.scenarios(name = SPATIAL_SCENARIO_NAMES[0])
 scn_deps = my_scenario.dependencies()
 scn_name = scn_deps[scn_deps.Name.str.contains("Initial Conditions - ")].iloc[0].Name
 ic_spatial_scn = my_project.scenarios(name = scn_name)
@@ -230,8 +231,8 @@ sav_lookup = sav_lookup.merge(state_class_datasheet[["Name", "ID"]],
 sav_lookup.rename(columns = {"ID": "state_class"}, inplace=True)
 
 # Turn time since most recent disturbance rasters into binary arrays
-tst_fire_path = os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "time-since-fire.tif")
-tst_harvest_path = os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "time-since-cut-update.tif")
+tst_fire_path = os.path.join(MODEL_INPUTS_DIR, "Spatial", "time-since-fire.tif")
+tst_harvest_path = os.path.join(MODEL_INPUTS_DIR, "Spatial", "time-since-cut-update.tif")
 
 with rio.open(tst_fire_path) as src:
     tst_fire = src.read(1)
@@ -421,7 +422,6 @@ fid = str(folder_df[folder_df.Name.str.contains("State Attribute Values")].iloc[
 add_scenario_to_folder(my_session, my_library, my_project, my_scenario, fid)
 base_dependencies.append(scenario_name)
 # %%
-
 # Add all new datasheets as dependencies to existing scenarios
 # state attribute values, flow group membership, stock group membership, & flow order
 for scn in SINGLE_CELL_SCENARIO_NAMES:
@@ -431,3 +431,4 @@ for scn in SINGLE_CELL_SCENARIO_NAMES:
 for scn in SPATIAL_SCENARIO_NAMES:
     my_scenario = my_project.scenarios(name = scn)
     my_scenario.dependencies(base_dependencies)
+# %%
