@@ -64,9 +64,9 @@ LIBRARY_FILE_NAME_BARE_LAND_SPINUP = "cbm-cfs3-spinup-flows.ssim"
 
 ## Scenario information ----
 SINGLE_CELL_SCENARIO_NAMES = ["Single Cell - No Disturbance", "Single Cell - Fire"]
-SPATIAL_SCENARIO_NAMES = ["Baseline Ownership with Disturbances: 2016 to 2046, 2MC",
-                          "Aspen Protection with Disturbances: 2016 to 2046, 2MC",
-                          "Military Land Protection with Disturbances: 2016 to 2046, 2MC"]
+SPATIAL_SCENARIO_NAMES = ["Baseline Ownership with Disturbances: 2016 to 2046, 1MC",
+                          "Aspen Protection with Disturbances: 2016 to 2046, 1MC",
+                          "Military Land Protection with Disturbances: 2016 to 2046, 1MC"]
 
 ## Model Terminology ----
 AREA_UNITS = "Hectares"
