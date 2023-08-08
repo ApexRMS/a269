@@ -96,14 +96,19 @@ for i in range(len(stratum_id_crosswalk)):
 
 # Replace values in state class raster that do not correspond to tertiary ID with values
 # from the stratum raster - want to mask multiple values
-mask = np.logical_or.reduce([state_class == v for v in [20,30,40,50,60,70,90]])
+state_class_mask = np.logical_or.reduce([state_class == v for v in [1,2,3,4]])
+stratum_mask = np.logical_or.reduce([state_class == v for v in [40]])
+
 new_array = np.copy(state_class)
-new_array[mask] = stratum[mask]
+new_array[state_class_mask] = state_class[state_class_mask]
+new_array[stratum_mask] = stratum[stratum_mask]
+
+new_array[~np.isin(new_array, [1,2,3,4])]= -9999
 
 # Write tertiary stratum raster
 tertiary_stratum_meta = stratum_meta.copy()
-with rio.open(os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "tertiary_stratum.tif"), "w", **tertiary_stratum_meta) as dst:
-    dst.write(new_array.astype(rio.uint8), 1)
+with rio.open(os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "tertiary_stratum_new.tif"), "w", **tertiary_stratum_meta) as dst:
+    dst.write(new_array.astype(rio.uint16), 1)
 
 # Add tertiary stratum raster to project
 my_datasheet.TertiaryStratumFileName = os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "tertiary_stratum.tif")
