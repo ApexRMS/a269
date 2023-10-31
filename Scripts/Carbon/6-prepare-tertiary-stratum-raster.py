@@ -8,6 +8,7 @@
 ## after transition from forest to non-forest state class in the
 ## final model.
 
+#%%
 ## Workspace ----
 # Set up environment
 import os
@@ -34,18 +35,20 @@ import pysyncrosim as ps
 import pandas as pd
 import rasterio as rio
 
+#%%
 ### Load Library ----
 my_session = ps.Session()
 my_session.add_packages("stsim")
 my_session.add_packages("stsimsf")
 
-my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FILE_NAME))
+my_library = ps.library(name = os.path.join(LIBRARY_DIR, "Working", LIBRARY_CARBON_LULC_FILE_NAME))
 
 my_project = my_library.projects(name = "Definitions")
 
 # Load crosswalk from cbm data to nestweb data
 cbm_to_nestweb_crosswalk = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "nestweb_to_cbm_forest_groups.csv"))
 
+#%%
 # Add tertiary stratum values to project (forest origin)
 tertiary_stratum = pd.DataFrame(
     {"Name": cbm_to_nestweb_crosswalk[0:4]["Nestweb Forest State Class"],
@@ -58,6 +61,7 @@ my_project.save_datasheet("stsim_TertiaryStratum", tertiary_stratum_datasheet, a
 my_scenario = my_project.scenarios(name = "Initial Conditions - Baseline Ownership")
 my_datasheet = my_scenario.datasheets(name = "stsim_InitialConditionsSpatial", show_full_paths=True)
 
+#%%
 # Load primary stratum and state class rasters
 with rio.open(my_datasheet.StratumFileName[0]) as src:
     stratum = src.read(1)
@@ -107,20 +111,21 @@ new_array[~np.isin(new_array, [1,2,3,4])]= -9999
 
 # Write tertiary stratum raster
 tertiary_stratum_meta = stratum_meta.copy()
-with rio.open(os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "tertiary_stratum_new.tif"), "w", **tertiary_stratum_meta) as dst:
+with rio.open(os.path.join(MODEL_INPUTS_DIR, "Spatial", "tertiary-stratum.tif"), "w", **tertiary_stratum_meta) as dst:
     dst.write(new_array.astype(rio.uint16), 1)
 
 # Add tertiary stratum raster to project
-my_datasheet.TertiaryStratumFileName = os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "tertiary_stratum.tif")
+my_datasheet.TertiaryStratumFileName = os.path.join(MODEL_INPUTS_DIR, "Spatial", "tertiary-stratum.tif")
 my_scenario.save_datasheet("stsim_InitialConditionsSpatial", my_datasheet)
 
 # Repeat for 2 other scenarios
 my_scenario = my_project.scenarios(name = "Initial Conditions - Increased Aspen Protection")
 my_datasheet = my_scenario.datasheets(name = "stsim_InitialConditionsSpatial", show_full_paths=True)
-my_datasheet.TertiaryStratumFileName = os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "tertiary_stratum.tif")
+my_datasheet.TertiaryStratumFileName = os.path.join(MODEL_INPUTS_DIR, "Spatial", "tertiary-stratum.tif")
 my_scenario.save_datasheet("stsim_InitialConditionsSpatial", my_datasheet)
 
 my_scenario = my_project.scenarios(name = "Initial Conditions - Military Training Land Protection")
 my_datasheet = my_scenario.datasheets(name = "stsim_InitialConditionsSpatial", show_full_paths=True)
-my_datasheet.TertiaryStratumFileName = os.path.join(CUSTOM_CARBON_SPATIAL_DATA_DIR, "tertiary_stratum.tif")
+my_datasheet.TertiaryStratumFileName = os.path.join(MODEL_INPUTS_DIR, "Spatial", "tertiary-stratum.tif")
 my_scenario.save_datasheet("stsim_InitialConditionsSpatial", my_datasheet)
+# %%

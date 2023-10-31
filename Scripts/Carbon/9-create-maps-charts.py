@@ -6,6 +6,7 @@
 ## of adding carbon stocks and flows.
 ## Assumes you have run the preceding scripts in order.
 
+#%%
 ## Workspace ----
 # Set up environment
 import os
@@ -35,7 +36,7 @@ my_session = ps.Session()
 my_session.add_packages("stsim")
 my_session.add_packages("stsimsf")
 
-my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FILE_NAME))
+my_library = ps.library(name = os.path.join(LIBRARY_DIR, "Working", "Test", LIBRARY_CARBON_LULC_FILE_NAME))
 
 my_project = my_library.projects(name = "Definitions")
 
@@ -44,6 +45,7 @@ chart_info = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "corestime_Charts.
 chart_info["Iteration"] = chart_info["Iteration"].astype("Int64")
 my_project.save_datasheet("corestime_Charts", chart_info)
 
+#%%
 # Save preconfigured maps
 map_info = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "corestime_Maps.csv"))
 my_project.save_datasheet("corestime_Maps", map_info)

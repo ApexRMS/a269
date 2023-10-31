@@ -2,6 +2,7 @@
 ## Katie Birchard (ApexRMS)
 ## April 2023
 
+#%%
 ## Workspace ----
 # Set up environment
 import os
@@ -31,7 +32,7 @@ my_session = ps.Session()
 my_session.add_packages("stsim")
 my_session.add_packages("stsimsf")
 
-my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FILE_NAME))
+my_library = ps.library(name = os.path.join(LIBRARY_DIR, "Working", "Test", LIBRARY_CARBON_LULC_FILE_NAME))
 
 my_project = my_library.projects(name = "Definitions")
 
@@ -40,6 +41,7 @@ for scn in SINGLE_CELL_SCENARIO_NAMES:
     my_scenario = my_project.scenarios(name = scn)
     my_scenario.run()
 
+#%%
 # Run spatial scenarios
 for scn in SPATIAL_SCENARIO_NAMES:
     my_scenario = my_project.scenarios(name = scn)
