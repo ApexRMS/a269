@@ -32,12 +32,20 @@ targetResolution <- 90
 # Buffer distance (m)
 bufferDistance <- 100
 
+# Filepath of csv to write sampled vri QMD values to
+sampledQMDValuesFilename <- file.path(tabularDataDir, "sampled-vri-qmd.csv")
+
 # Load spaital data
-# VRI shapefile (appended with aspen cover)
-vriShapefile <- vect(x = file.path(spatialDataDir, "vri-aspen-percent-cover.shp"))
+# VRI shapefile as a SpatVector (appended with aspen cover)
+vriSpatVector <- vect(x = file.path(spatialDataDir, "vri-aspen-percent-cover.shp"))
+
+# VRI shapefile as an sf object (appended with aspen cover)
+vriSf <- st_read(dsn = spatialDataDir, layer = "vri-aspen-percent-cover") %>% 
+  select(FEATURE, BEC_VAR_, ledngID, PROJ_AGE_1, DIAM_12) %>% 
+  filter(!is.na(ledngID))
 
 # AAFC Land Cover raster
-landcoverRaster <- rast(file.path(spatialDataDir, "LU2015_u10", "LU2015_u10", "LU2015_u10_v3_2021_06.tif"))
+landcoverRaster <- rast(file.path(spatialDataDir, "AAFC", "LU2015_u10", "LU2015_u10", "LU2015_u10_v3_2021_06.tif"))
 
 # Ownership layers
 # Protected areas
@@ -83,13 +91,13 @@ res(templateRaster) <- targetResolution
 
 ## Initial Conditions ----
 ## Primary Stratum ----
-becVariantRaster <- rasterize(x = vriShapefile,
+becVariantRaster <- rasterize(x = vriSpatVector,
                               y = templateRaster, 
                               field = "BEC_VAR_")
 
 ## Secondary Stratum (Ownership) ----
 # Make a backgroup value
-fillRaster <- aggregate(vriShapefile) %>% 
+fillRaster <- aggregate(vriSpatVector) %>% 
   rasterize(y = templateRaster)
 
 fillRaster[fillRaster == 1] <- 3
@@ -185,26 +193,13 @@ cwsLandsRaster <- rasterize(x = cwsLands,
 militaryTraningProtectionOwnershipRaster <- merge(protectedAreasRaster, indianReservesRaster,
                                  cwsLandsRaster, bcParcelsRaster, fillRaster)
 
-## Time Since Transition (Clearcuts) ----
-# Calculate time since last cut (relative to 2016)
-tstRaster <- cutblocks %>% 
-  filter(Harvest_Ye <= 2016) %>% 
-  mutate(TimeSinceCut = 2016 - Harvest_Ye) %>% 
-  filter(TimeSinceCut <= 60) %>% 
-  rasterize(y = templateRaster, 
-            field = "TimeSinceCut")
-
-tstRaster[is.na(tstRaster)] <- 61
-tstRaster <- tstRaster %>%
-  mask(mask = becVariantRaster)
-
 ## State Class ----
 # Rasterize VRI leading species data and reclassify
 speciesReclassMatrix <- matrix(data = c(0,1,2,3,4,0,41,42,43,44),
                                nrow = 5, 
                                ncol = 2)
 
-speciesRaster <- rasterize(x = vriShapefile,
+speciesRaster <- rasterize(x = vriSpatVector,
                            y = templateRaster,
                            field = "ledngID") %>% 
   classify(rcl = speciesReclassMatrix)
@@ -226,25 +221,127 @@ landcoverRaster <- landcoverRaster %>%
 # If land cover = forest (4), add species code
 stateClassRaster <- ifel(speciesRaster == 0, speciesRaster + landcoverRaster, speciesRaster)
 
+### Forest mask ----
+# Get unique state class values and reclassify into binary forest values
+stateClassValues <- stateClassRaster[] %>% unique() %>% as.vector()
+forestValues <- case_when((stateClassValues >= 40 & stateClassValues <= 44) ~ 1,
+                          (stateClassValues < 40 | stateClassValues > 44) ~ 0)
+
+# Create reclass matrix
+forestReclass <- data.frame(StateClass = stateClassValues,
+                            Forest = forestValues) %>% 
+  as.matrix()
+
+# Reclassify state class raster to binary forest mask
+forestMaskRaster <- stateClassRaster %>% 
+  classify(rcl = forestReclass)
+
+## Time Since Transition ----
+### Clearcuts ----
+# Calculate time since last cut (relative to 2016)
+tstRaster <- cutblocks %>% 
+  filter(Harvest_Ye <= 2016) %>% 
+  mutate(TimeSinceCut = 2016 - Harvest_Ye) %>% 
+  filter(TimeSinceCut <= 60) %>% 
+  rasterize(y = templateRaster, 
+            field = "TimeSinceCut")
+
+tstRaster[is.na(tstRaster)] <- 61
+tstRaster <- tstRaster %>%
+  mask(mask = becVariantRaster)
+
+#### Cut mask ----
+cutMaskRaster <- tstRaster
+
+# Where tst <= 60, set to cut (1), where > 60 set to no cut (0)
+cutMaskRaster[cutMaskRaster <= 60] <- 1
+cutMaskRaster[cutMaskRaster > 60] <- 0
+
+# Mask out non-forest cells
+cutMaskRaster <- cutMaskRaster * forestMaskRaster
+
+### Fire ----
+timeSinceFire <- firePerimeters %>% 
+  mutate(fireYear = fireYear %>% as.numeric()) %>% 
+  filter(fireYear <= 2016) %>% 
+  mutate(TimeSinceFire = 2016 - fireYear) %>% 
+  rasterize(y = templateRaster, 
+            field = "TimeSinceFire")
+
+timeSinceFire <- timeSinceFire %>%
+  mask(mask = becVariantRaster)
+
 ## Age Raster ----
-ageRaster <- rasterize(x = vriShapefile,
+ageRaster <- rasterize(x = vriSpatVector,
                        y = templateRaster,
                        field = "PROJ_AGE_1")
 
 ## Initial Stocks ----
-# Initial Aspen Cover
-aspenCoverRaster <- rasterize(x = vriShapefile,
+### Initial Aspen Cover ----
+aspenCoverRaster <- rasterize(x = vriSpatVector,
                               y = templateRaster,
                               field = "AT_PCT") 
 
 aspenCoverRaster <- ifel(speciesRaster != 0, aspenCoverRaster, 0)
 
-# Initial quadratic mean diameter 
-diameterRaster <- rasterize(x = vriShapefile,
-                            y = templateRaster,
-                            field = "DIAM_12") 
+### Initial quadratic mean diameter ----
+becVariants <- vriSf$BEC_VAR_ %>% unique()
+forestTypes <- vriSf$ledngID %>% unique()
 
-diameterRaster <- ifel(speciesRaster != 0, diameterRaster, 0)
+# Drop geometry column of vriSf
+vriDf <- st_drop_geometry(vriSf)
+
+# Write an emtpy output csv to disk
+tibble(FEATURE = integer(0), 
+       DIAM_12 = numeric(0)) %>% 
+  write_csv(file.path(tabularDataDir, "sampled-vri-qmd.csv"))
+
+# Loop over each combination of bec variant and forest type to randomly sample diameter values
+for(becVariant in becVariants){
+  for(forestType in forestTypes){
+    
+    #becVariant <- 5
+    #forestType <- 2
+    
+    # Get diameters for a given BEC variant and forest state class
+    diametersToSample <- vriDf %>% 
+      filter(BEC_VAR_ == becVariant & 
+             ledngID == forestType &
+             !is.na(DIAM_12)) %>% 
+      pull(DIAM_12)
+    
+    # Randomly sample from vector of diameters (diametersToSample)
+    # Assign these values to features without a diameter 
+    vriDf %>% 
+      filter(BEC_VAR_ == becVariant & 
+               ledngID == forestType &
+               is.na(DIAM_12)) %>% 
+      mutate(DIAM_12 = sample(diametersToSample,
+                              size = length(DIAM_12),
+                              replace = TRUE)) %>% 
+      select(FEATURE, DIAM_12) %>% 
+      # Write sampled qmd values to disk
+      write_csv(sampledQMDValuesFilename, append = TRUE)
+ }
+}
+
+# Join sampled QMD values to vriSf and rasterize diameter column
+sampledQMDValues <- read_csv(sampledQMDValuesFilename)
+
+diameterRaster <- vriSf %>% 
+  left_join(y = sampledQMDValues,
+            by = "FEATURE") %>% 
+  mutate(DIAM_12.x = case_when(is.na(DIAM_12.x) ~ DIAM_12.y,
+                               !is.na(DIAM_12.x) ~ DIAM_12.x)) %>% 
+  rename(DIAM_12 = DIAM_12.x) %>% 
+  select(-DIAM_12.y) %>% 
+  vect() %>% 
+  rasterize(y = templateRaster,
+            field = "DIAM_12")
+  
+diameterRaster[is.na(diameterRaster)] <- 0
+diameterRaster <- diameterRaster %>% 
+  mask(mask = becVariantRaster)
 
 ## Mean decay ----
 meanDecayRaster <- sites %>% 
@@ -395,5 +492,24 @@ writeRaster(x = diameterRaster,
 writeRaster(x = meanDecayRaster,
             filename = file.path(modelInputsDir, "mean-decay.tif"),
             datatype = "FLT4S",
+
+# Forest Mask
+writeRaster(x = forestMaskRaster,
+            filename = file.path(modelInputsDir, "forest-mask.tif"),
+            datatype = "INT2S",
+            NAflag = -9999L,
+            overwrite = TRUE)
+
+# Cut Mask
+writeRaster(x = cutMaskRaster,
+            filename = file.path(modelInputsDir, "cut-mask.tif"),
+            datatype = "INT2S",
+            NAflag = -9999L,
+            overwrite = TRUE)
+
+# Time since fire  
+writeRaster(x = timeSinceFire,
+            filename = file.path(modelInputsDir, "time-since-fire.tif"),
+            datatype = "INT2S",
             NAflag = -9999L,
             overwrite = TRUE)
