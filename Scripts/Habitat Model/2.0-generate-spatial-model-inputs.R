@@ -62,10 +62,18 @@ bcParcels <- st_read(dsn = spatialDataDir, layer = "bc-parcels-clip") %>%
                                    OWNER_TYPE == "Unknown" ~ 3)) %>% 
   vect()
 
+
 # Historic Cutblocks
 cutblocks <- st_read(dsn = file.path(spatialDataDir, "Consolidated_Cutblocks", "Consolidated_Cutblocks", "Consolidated_Cut_Block.gdb"),
-                     layer = "consolidated-cutblocks-vri-extent")
+                 layer = "consolidated-cutblocks-vri-extent")
 
+# Historic Fires
+fires <- st_read(dsn = file.path(spatialDataDir, "BCGW_7113060B_1656359757658_8108", "PROT_HISTORICAL_FIRE_POLYS_SP.gdb"),
+                     layer = "WHSE_LAND_AND_NATURAL_RESOURCE_PROT_HISTORICAL_FIRE_POLYS_SP")
+
+# Sample sites
+sites <- st_read(file.path(spatialDataDir, "eccc-sample-plot-data-append-vri.shp")) 
+  
 ## Template raster ----
 # Create template raster of study area
 templateRaster <- rast()
@@ -238,6 +246,87 @@ diameterRaster <- rasterize(x = vriShapefile,
 
 diameterRaster <- ifel(speciesRaster != 0, diameterRaster, 0)
 
+## Mean decay ----
+meanDecayRaster <- sites %>% 
+  tibble %>% 
+  select(BEC_ZON, Men_dcy) %>% 
+  na.omit %>% 
+  group_by(BEC_ZON) %>% 
+  # Get mean decay by BEC zone
+  summarise(MeanDecay = mean(Men_dcy)) %>% 
+  mutate(BEC_ZON = case_when(BEC_ZON == "Interior Douglas-fir:mild" ~ "Interior Douglas-fir:very dry mild",
+                             BEC_ZON != "Interior Douglas-fir:mild " ~ BEC_ZON)) %>% 
+  # Add an NA row for Bunchgrass (no sample sites in BG)
+  bind_rows(tibble(BEC_ZON = "Bunch Grass:very dry warm",
+                   MeanDecay = .$MeanDecay[.$BEC_ZON == "Interior Douglas-fir:very dry mild"])) %>% 
+  # Join mean decay values with raster IDs for BEC zone
+  left_join(vriShapefile %>% 
+              st_as_sf %>% 
+              tibble %>% 
+              select(BEC_ZONE_S, BEC_VAR_) %>% 
+              distinct,
+            by = join_by(BEC_ZON == BEC_ZONE_S)) %>% 
+  select(-BEC_ZON) %>%
+  select(BEC_VAR_, MeanDecay) %>% 
+  as.matrix() %>% 
+  # Reclassify BEC raster with mean decay values
+  classify(x = becVariantRaster, rcl = .)
+
+names(meanDecayRaster) <- "Mean_decay"
+
+## Spatial Transition Multipliers ----
+### Historic Fires ----
+fireYears <- fires %>% filter(FIRE_YEAR >= 2016) %>% pull(FIRE_YEAR) %>% unique
+
+for(fireYear in seq(min(fireYears),max(fireYears))){
+  
+  outputFile <- "tm-fire-" %>% str_c(fireYear %>% as.character(), ".tif")
+  
+  fires %>% 
+    filter(FIRE_YEAR == fireYear) %>% 
+    vect %>% 
+    rasterize(y = templateRaster) %>% 
+    classify(rcl = matrix(data = c(1, NA, 1, 0), ncol = 2, nrow = 2)) %>% 
+    mask(mask = becVariantRaster) %>% 
+    writeRaster(file.path(modelInputsDir, outputFile),
+                datatype = "INT2S",
+                NAflag = -9999L,
+                overwrite = TRUE)
+}
+
+### Historic Cuts ----
+cutYears <- cutblocks %>% filter(Harvest_Ye >= 2016) %>% pull(Harvest_Ye) %>% unique
+
+for(cutYear in seq(min(cutYears),max(cutYears))){
+  
+  outputFile <- "tm-cut-" %>% str_c(cutYear %>% as.character(), ".tif")
+  
+  cutblocks %>% 
+    filter(Harvest_Ye == cutYear) %>% 
+    vect %>% 
+    rasterize(y = templateRaster) %>% 
+    classify(rcl = matrix(data = c(1, NA, 1, 0), ncol = 2, nrow = 2)) %>% 
+    mask(mask = becVariantRaster) %>% 
+    writeRaster(file.path(modelInputsDir, outputFile),
+                datatype = "INT2S",
+                NAflag = -9999L,
+                overwrite = TRUE)
+}
+
+### Reset Disturbances ----
+tmRaster <- becVariantRaster
+tmRaster[!is.na(tmRaster)] <- 1
+writeRaster(tmRaster,
+            file.path(modelInputsDir, "tm-cut-2022.tif"),
+            datatype = "INT2S",
+            NAflag = -9999L,
+            overwrite = TRUE)
+
+writeRaster(tmRaster,
+            file.path(modelInputsDir, "tm-fire-2022.tif"),
+            datatype = "INT2S",
+            NAflag = -9999L,
+            overwrite = TRUE)
 ## Write rasters to disk ----
 # Primary stratum
 writeRaster(x = becVariantRaster,
@@ -299,5 +388,12 @@ writeRaster(x = aspenCoverRaster,
 writeRaster(x = diameterRaster,
             filename = file.path(modelInputsDir, "initial-diameter.tif"),
             datatype = "INT2S",
+            NAflag = -9999L,
+            overwrite = TRUE)
+
+# Mean decay
+writeRaster(x = meanDecayRaster,
+            filename = file.path(modelInputsDir, "mean-decay.tif"),
+            datatype = "FLT4S",
             NAflag = -9999L,
             overwrite = TRUE)
