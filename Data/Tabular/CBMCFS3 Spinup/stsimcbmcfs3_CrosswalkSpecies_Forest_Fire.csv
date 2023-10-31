@@ -1,0 +1,30 @@
+EcoBoundaryID,AdminBoundaryID,SpeciesTypeID,StratumID,SecondaryStratumID,TertiaryStratumID,StateClassID,AverageTemperature,CBMOutputFile
+Atlantic Maritime,Quebec,Maple,Puget Lowland,Washington,,Forest:Maple/Beech/Birch Group,6.7100,maple-beech-birch-group-fire.txt
+Atlantic Maritime,Quebec,Spruce - Genus type,Puget Lowland,Washington,,Forest:Spruce/Fir Group,4.6400,spruce-fir-group-fire.txt
+Boreal Shield West,Ontario,Birch,Puget Lowland,Washington,,Forest:Aspen/Birch Group,5.1500,aspen-birch-group-fire.txt
+Mixedwood Plains,Ontario,Ash,Puget Lowland,Washington,,Forest:Elm/Ash/Cottonwood Group,14.2300,elm-ash-cottonwood-group-fire.txt
+Mixedwood Plains,Ontario,Cypress,Puget Lowland,Washington,,Forest:Oak/Gum/Cypress Group,18.3300,oak-gum-cyprus-group-fire.txt
+Mixedwood Plains,Ontario,Hickory,Puget Lowland,Washington,,Forest:Oak/Hickory Group,13.2200,oak-hickory-group-fire.txt
+Mixedwood Plains,Ontario,Jack pine,Puget Lowland,Washington,,Forest:White/Red/Jack Pine Group,6.8100,white-red-jack-pine-group-fire.txt
+Mixedwood Plains,Ontario,Oak,Puget Lowland,Washington,,Forest:Oak/Pine Group,16.8000,oak-pine-group-fire.txt
+Mixedwood Plains,Ontario,Other hardwoods,Puget Lowland,Washington,,Forest:Exotic Hardwoods Group,19.2300,exotic-hardwoods-group-fire.txt
+Mixedwood Plains,Ontario,Other hardwoods,Puget Lowland,Washington,,Forest:Tropical Hardwoods Group,22.0800,tropical-hardwoods-group-fire.txt
+Mixedwood Plains,Ontario,Pine - Genus type,Puget Lowland,Washington,,Forest:Loblolly/Shortleaf Pine Group,17.4700,loblolly-shortleaf-pine-group-fire.txt
+Mixedwood Plains,Ontario,Pine - Genus type,Puget Lowland,Washington,,Forest:Longleaf/Slash Pine Group,19.6200,longleaf-slash-pine-group-fire.txt
+Montane Cordillera,Alberta,Douglas-fir and Rocky Mountain Douglas-fir,Puget Lowland,Washington,,Forest:Douglas-fir Inland Group,7.1600,douglas-fir-inland-group-2-fire.txt
+Montane Cordillera,British Columbia,Lodgepole pine,Puget Lowland,Washington,,Forest:Lodgepole Pine Group,3.1400,lodgepole-pine-group-fire.txt
+Montane Cordillera,British Columbia,Mountain hemlock,Puget Lowland,Washington,,Forest:Fir/Spruce/Mountain Hemlock Group,3.8000,fir-spruce-mountain-hemlock-group-fire.txt
+Montane Cordillera,British Columbia,Oak,Puget Lowland,Washington,,Forest:Western Oak Group,12.8900,western-oak-group-b2-fire.txt
+Montane Cordillera,British Columbia,Other hardwoods,Puget Lowland,Washington,,Forest:Other Western Hardwoods Group,12.8100,other-western-hardwoods-group-b2-fire.txt
+Montane Cordillera,British Columbia,Other softwoods,Puget Lowland,Washington,,Forest:California Mixed Conifer Group,10.4000,california-mixed-conifer-group-fire.txt
+Montane Cordillera,British Columbia,Other softwoods,Puget Lowland,Washington,,Forest:Exotic Softwoods Group,7.6300,exotic-softwoods-group-fire.txt
+Montane Cordillera,British Columbia,Other softwoods,Puget Lowland,Washington,,Forest:Other Western Softwood Group,2.4700,other-western-softwoods-group-fire.txt
+Montane Cordillera,British Columbia,Other softwoods,Puget Lowland,Washington,,Forest:Pinyon/Juniper Group,9.7400,pinyon-juniper-group-fire.txt
+Montane Cordillera,British Columbia,Ponderosa pine,Puget Lowland,Washington,,Forest:Ponderosa Pine Group,7.5600,ponderosa-pine-group-fire.txt
+Montane Cordillera,British Columbia,Western larch,Puget Lowland,Washington,,Forest:Western Larch Group,5.3100,western-larch-group-fire.txt
+Pacific Maritime,British Columbia,Alder,Puget Lowland,Washington,,Forest:Alder/Maple Group,10.4700,alder-maple-group-fire.txt
+Pacific Maritime,British Columbia,Douglas-fir - Genus type,Puget Lowland,Washington,,Forest:Douglas-fir Coastal Group,7.1700,douglas-fir-group-fire.txt
+Pacific Maritime,British Columbia,Other hardwoods,Puget Lowland,Washington,,Forest:Tanoak/Laurel Group,13.1200,tanoak-laurel-group-fire.txt
+Pacific Maritime,British Columbia,Other softwoods,Puget Lowland,Washington,,Forest:Redwood Group,12.6900,redwood-group-fire.txt
+Pacific Maritime,British Columbia,Sitka spruce,Puget Lowland,Washington,,Forest:Hemlock/Sitka Spruce Group,8.3800,hemlock-sitka-spruce-group-fire.txt
+Pacific Maritime,British Columbia,Western white pine,Puget Lowland,Washington,,Forest:Western White Pine Group,9.7500,western-white-pine-group-fire.txt
