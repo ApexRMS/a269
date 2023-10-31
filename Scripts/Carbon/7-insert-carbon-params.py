@@ -51,6 +51,7 @@ cbm_to_nestweb_crosswalk = pd.read_csv(os.path.join(CUSTOM_CARBON_DATA_DIR, "nes
 # Local vars
 no_data = -9999
 
+#%%
 # Create folder for storing rasters
 create_subscenario_dir("stsimsf_InitialStockSpatial", dir_name=CUSTOM_MERGED_SUBSCENARIOS_DIR)
 
@@ -171,6 +172,7 @@ scn_name = scn_deps[scn_deps.Name.str.contains("Initial Conditions - ")].iloc[0]
 ic_spatial_scn = my_project.scenarios(name = scn_name)
 ic_spatial = ic_spatial_scn.datasheets("stsim_InitialConditionsSpatial", show_full_paths=True)
 
+#%%
 forest_age_raster = rioxarray.open_rasterio(ic_spatial.AgeFileName.iloc[0])
 forest_type_raster = rioxarray.open_rasterio(ic_spatial.TertiaryStratumFileName.iloc[0])
 state_class_raster = rioxarray.open_rasterio(ic_spatial.StateClassFileName.iloc[0])
@@ -232,7 +234,7 @@ sav_lookup.rename(columns = {"ID": "state_class"}, inplace=True)
 
 # Turn time since most recent disturbance rasters into binary arrays
 tst_fire_path = os.path.join(MODEL_INPUTS_DIR, "Spatial", "time-since-fire.tif")
-tst_harvest_path = os.path.join(MODEL_INPUTS_DIR, "Spatial", "time-since-cut-update.tif")
+tst_harvest_path = os.path.join(MODEL_INPUTS_DIR, "Spatial", "time-since-cut.tif")
 
 with rio.open(tst_fire_path) as src:
     tst_fire = src.read(1)
@@ -298,8 +300,10 @@ for row in initial_stocks.itertuples():
         initial_stock_data[origin] = initial_stock_data[origin] * initial_stock_data[f"tst_{origin}"]
 
     initial_stock_data["Value"] = initial_stock_data["fire"] + initial_stock_data["harvest"]
-    initial_stock_data["Value"] = np.where(initial_stock_data["Value"] == 0, -9999, initial_stock_data["Value"])
-    initial_stock_data["Value"] = np.where(initial_stock_data["Value"].isnull(), -9999, initial_stock_data["Value"])
+    initial_stock_data["Value"] = np.where(initial_stock_data["Value"].isnull(), 0, initial_stock_data["Value"])
+    initial_stock_data["Value"] = np.where(initial_stock_data["state_class"] == -9999, -9999, initial_stock_data["Value"])
+    initial_stock_data["Value"] = np.where(initial_stock_data["state_class"].isnull(), -9999, initial_stock_data["Value"])
+    initial_stock_data["Value"] = np.where((initial_stock_data["state_class"].isin([40,41,42,43,44])), initial_stock_data["Value"], -9999)
     raster_data = np.array(initial_stock_data.Value).reshape(1, raster_dims[1], -1)
     filepath = os.path.join(CUSTOM_MERGED_SUBSCENARIOS_DIR, "stsimsf_InitialStockSpatial", f"{stock_id_clean}.tif")
 
@@ -310,11 +314,13 @@ for row in initial_stocks.itertuples():
     # Fill datasheet with initial stocks
     initial_stocks_spatial = pd.concat([initial_stocks_spatial, pd.DataFrame({"StockTypeID": [stock_id], "RasterFileName": [filepath]})])
 
+#%%
 # Save datasheet with initial stocks
 scenario_name = "Initial Stocks Spatial"
 my_scenario = my_project.scenarios(name = scenario_name)
 my_scenario.save_datasheet("stsimsf_InitialStockSpatial", initial_stocks_spatial, append=True)
 
+#%%
 ### Modifiy Scenarios ----
 ### Single Cell ---
 # Update initial conditions (non-spatial) with tertiary stratum
