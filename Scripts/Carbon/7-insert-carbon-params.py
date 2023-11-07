@@ -39,7 +39,7 @@ my_session = ps.Session()
 my_session.add_packages("stsim")
 my_session.add_packages("stsimsf")
 
-my_library = ps.library(name = os.path.join(LIBRARY_DIR, "Working", LIBRARY_CARBON_LULC_FILE_NAME))
+my_library = ps.library(name = os.path.join(LIBRARY_DIR, LIBRARY_CARBON_LULC_FILE_NAME))
 
 my_project = my_library.projects(name = "Definitions")
 
@@ -251,6 +251,7 @@ cell_info["tst_harvest"] = tst_harvest.reshape(raster_length, -1).squeeze()
 # compare harvest and fire columns, set higher value to Nan
 cell_info["tst_harvest"] = np.where(cell_info["tst_harvest"] > cell_info["tst_fire"], np.NaN, cell_info["tst_harvest"])
 cell_info["tst_fire"] = np.where(cell_info["tst_fire"] > cell_info["tst_harvest"], np.NaN, cell_info["tst_fire"])
+cell_info["tst_fire"] = np.where(cell_info["tst_fire"] == cell_info["tst_harvest"], np.NaN, cell_info["tst_fire"])
 
 # Set all non NaN values to 1
 cell_info["tst_fire"] = np.where(cell_info["tst_fire"].notnull(), 1, cell_info["tst_fire"])
@@ -299,7 +300,24 @@ for row in initial_stocks.itertuples():
         initial_stock_data.rename(columns = {"Value": origin}, inplace=True)
         initial_stock_data[origin] = initial_stock_data[origin] * initial_stock_data[f"tst_{origin}"]
 
+    # Where there is no recent disturbance, fill SAV with fire values
+    sav_lookup_temp = sav_lookup[sav_lookup.StateAttributeTypeID == sa_id]
+    sav_lookup_temp = sav_lookup_temp[sav_lookup_temp.origin == 'fire']
+    sav_lookup_temp = sav_lookup_temp[["age", "forest_type_group", "state_class", "Value"]]
+    sav_lookup_temp = sav_lookup_temp.drop_duplicates()
+
+    sav_lookup_temp.fillna(-9999, inplace=True)
+    no_data_row = pd.DataFrame({"age": [-9999],
+                                "forest_type_group": [-9999],
+                                "state_class": [-9999],
+                                "Value": [-9999]})
+    sav_lookup_temp = pd.concat([sav_lookup_temp, no_data_row])
+    
+    # Merge state attribute value information with cell info and write to raster
+    initial_stock_data = initial_stock_data.merge(sav_lookup_temp, on=["age", "forest_type_group", "state_class"], how="left")
+    initial_stock_data.rename(columns = {"Value": "no_disturbance"}, inplace=True)   
     initial_stock_data["Value"] = initial_stock_data["fire"] + initial_stock_data["harvest"]
+    initial_stock_data["Value"] = np.where(initial_stock_data["Value"] == 0, initial_stock_data["no_disturbance"], initial_stock_data["Value"])
     initial_stock_data["Value"] = np.where(initial_stock_data["Value"].isnull(), 0, initial_stock_data["Value"])
     initial_stock_data["Value"] = np.where(initial_stock_data["state_class"] == -9999, -9999, initial_stock_data["Value"])
     initial_stock_data["Value"] = np.where(initial_stock_data["state_class"].isnull(), -9999, initial_stock_data["Value"])
@@ -358,6 +376,17 @@ my_datasheet.ToStockTypeID.replace("Biomass: Fine Roots", "Biomass: Fine Root", 
 
 my_datasheet.replace(CBM_FOREST_FIRE_TRANSITION + " [Type]", FOREST_FIRE_TRANSITION + " [Type]", inplace=True)
 my_datasheet.replace(CBM_FOREST_CLEARCUT_TRANSITION + " [Type]", FOREST_CLEARCUT_TRANSITION + " [Type]", inplace=True)
+my_datasheet.drop_duplicates(inplace = True)
+
+forest_values = pd.DataFrame(data=None, columns=my_datasheet.columns)
+forest_types = pd.unique(cbm_to_nestweb_crosswalk['Nestweb Forest State Class']).tolist()
+for forest_type in forest_types:
+    updated_rows = my_datasheet[my_datasheet['FlowTypeID'].str.contains("Net Growth Forest")]
+    updated_rows['FromStateClassID'] = forest_type
+    forest_values = pd.concat([forest_values, updated_rows], ignore_index = True)
+my_datasheet.drop(index=my_datasheet.index[my_datasheet['FlowTypeID'].str.contains("Net Growth Forest")], inplace=True)
+my_datasheet = pd.concat([my_datasheet, forest_values], ignore_index = True)
+
 my_scenario.save_datasheet(name = datasheet_name, data = my_datasheet)
 
 #%%
