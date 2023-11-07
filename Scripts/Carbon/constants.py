@@ -25,8 +25,8 @@ CARBON_PREPROCESSING_DIR = os.path.join(SCRIPTS_DIR, "CONUS/Carbon Preprocessing
 
 DATA_DIR = os.path.join(ROOT_DIR, "Data")
 LIBRARY_DIR = os.path.join(ROOT_DIR, "Libraries")
-MODEL_INPUTS_DIR = os.path.join(ROOT_DIR, "Model Inputs")
-MODEL_OUTPUTS_DIR = os.path.join(ROOT_DIR, "Model Outputs")
+MODEL_INPUTS_DIR = os.path.join(ROOT_DIR, "Model-Inputs")
+MODEL_OUTPUTS_DIR = os.path.join(ROOT_DIR, "Model-Outputs")
 INTERMEDIATES_DIR = os.path.join(ROOT_DIR, "Intermediates")
 
 ### Composite directories ----
